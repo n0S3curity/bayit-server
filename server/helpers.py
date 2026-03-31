@@ -974,6 +974,155 @@ def calculate_total_items():
     return total_items
 
 
+# ---------------------------------------------------------------------------
+# MongoDB version — same analysis logic, different I/O layer
+# ---------------------------------------------------------------------------
+
+def process_receipt_mongo(list_id, receipt_content: dict, original_link: str | None = None):
+    """
+    Process a receipt and persist the results to MongoDB.
+
+    The analysis logic is identical to process_receipt_file().
+    Only the load/save steps use MongoDB instead of the file system.
+    """
+    from db import get_db
+    from models.products_mongo import bulk_upsert as products_bulk_upsert
+    from models.receipts_mongo import save_receipt
+
+    db = get_db()
+
+    # ── Load existing products for this list ──────────────────────────────
+    products = {}
+    for doc in db['products'].find({'listId': list_id}):
+        barcode = doc['barcode']
+        products[barcode] = {k: v for k, v in doc.items() if k not in ('_id', 'listId')}
+
+    # ── Load existing stats for this list ─────────────────────────────────
+    default_stats = {
+        "total_receipts": 0,
+        "total_spent": 0.0,
+        "total_items": 0,
+        "average_spend_per_receipt": 0.0,
+        "top_10_product_purchased": [],
+        "top_10_price_increase": [],
+        "top_10_price_drop": [],
+        "receipts": {}
+    }
+    existing_stats = db['stats'].find_one({'listId': list_id}, {'_id': 0, 'listId': 0})
+    stats = default_stats.copy()
+    if existing_stats:
+        stats.update(existing_stats)
+
+    # ── Process receipt items (identical logic to process_receipt_file) ───
+    date_and_time = receipt_content.get('createdDate', 'Unknown Date and Time').replace("T", " ")
+
+    receipt_items = receipt_content.get('items', [])
+    receipt_items = [item for item in receipt_items if
+                     item.get('code') != "901046" and item.get('name') != "מיחזור אריזה"]
+
+    for item in receipt_items:
+        barcode      = item.get('code')
+        product_name = item.get('name')
+        price        = item.get('price')
+        quantity     = item.get('quantity', 1)
+        total        = item.get('total')
+
+        if not all([barcode, product_name, price is not None, quantity is not None, total is not None]):
+            print(f"Skipping malformed item: {item}")
+            continue
+
+        try:
+            price    = float(price)
+            quantity = int(quantity)
+            total    = float(total)
+        except (ValueError, TypeError) as e:
+            print(f"Skipping item due to invalid number format: {item}, Error: {e}")
+            continue
+
+        if barcode == "901046":
+            continue
+
+        if barcode in products:
+            product_data = products[barcode]
+            product_data['favorite'] = product_data.get('favorite', False)
+            product_data['total_quantity'] = int(product_data.get('total_quantity', 0)) + quantity
+            product_data['total_price']    = float(product_data.get('total_price', 0.0)) + total
+
+            current_price  = price
+            cheapest_price = float(product_data.get('cheapest_price', current_price))
+            highest_price  = float(product_data.get('highest_price', current_price))
+            last_price     = float(product_data.get('last_price', current_price))
+
+            if cheapest_price > 0:
+                product_data['price_increase'] = ((last_price - cheapest_price) / cheapest_price) * 100
+            else:
+                product_data['price_increase'] = 0.0
+
+            product_data['last_price']     = current_price
+            product_data['cheapest_price'] = min(cheapest_price, current_price)
+            product_data['highest_price']  = max(highest_price, current_price)
+
+            history = product_data.get('history', [])
+            history.append({"date": date_and_time, "quantity": quantity, "price": price})
+            product_data['history'] = history
+
+            product_data['average_price'] = product_data['total_price'] / product_data['total_quantity']
+
+        else:
+            products[barcode] = {
+                "barcode":        barcode,
+                "name":           product_name,
+                "price":          price,
+                "total_quantity": quantity,
+                "total_price":    total,
+                "favorite":       False,
+                "history":        [{"date": date_and_time, "quantity": quantity, "price": price}],
+                "cheapest_price": price,
+                "highest_price":  price,
+                "price_increase": 0.0,
+                "last_price":     price,
+                "settings":       {"default_category": "", "alias": ""},
+            }
+
+    # ── Update stats ──────────────────────────────────────────────────────
+    total_receipt_price = receipt_content.get('total', 0.0)
+    number_of_items     = int(receipt_content.get('numberOfItems', 0))
+    receipt_barcode     = receipt_content.get('barcode', 'Unknown Barcode')
+
+    stats['total_receipts'] = len(stats.get('receipts', {})) + 1
+    stats['total_spent']    = (
+        sum(float(r.get('total_price', 0) or 0) for r in (stats.get('receipts') or {}).values())
+        + float(total_receipt_price or 0)
+    )
+    stats['total_items'] = (
+        sum(int(p.get('total_quantity', 0)) for p in products.values())
+    )
+    stats['average_spend_per_receipt'] = (
+        stats['total_spent'] / stats['total_receipts'] if stats['total_receipts'] > 0 else 0.0
+    )
+
+    top_10 = sorted(products.values(), key=lambda x: x.get('total_quantity', 0), reverse=True)[:10]
+    stats['top_10_product_purchased'] = top_10
+    stats['top_10_price_increase']    = calculate_top_10_price_increase(products)
+    stats['top_10_price_drop']        = calculate_top_10_price_drop(products)
+
+    stats['receipts'][receipt_barcode] = {
+        "total_price":   total_receipt_price,
+        "date_and_time": date_and_time,
+    }
+
+    # ── Persist to MongoDB ────────────────────────────────────────────────
+    products_bulk_upsert(list_id, products)
+
+    db['stats'].update_one(
+        {'listId': list_id},
+        {'$set': {**stats, 'listId': list_id}},
+        upsert=True
+    )
+
+    print(f"process_receipt_mongo: saved {len(products)} products and stats for list {list_id}.")
+
+
 def calculate_total_spent():
     base_dir = pathlib.Path(__file__).resolve().parent.parent
     stats_path = base_dir / "databases" / "stats.json"

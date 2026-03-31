@@ -6,3 +6,5 @@ flask_cors
 urllib3
 firebase-admin==6.5.0
 python-dotenv==1.0.1
+pymongo==4.7.3
+Flask-Limiter==3.5.0

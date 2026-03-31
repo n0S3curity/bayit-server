@@ -4,24 +4,38 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask
-from flask_cors import CORS  # New import for CORS
+from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
-from api_routes import api_bp  # Import your blueprint
-from frontend_routes import frontend_bp  # Import your frontend blueprint
+from api_routes import api_bp
+from frontend_routes import frontend_bp
+from list_routes import list_bp
 from helpers import *
-from supermarkets_scrapper import Scrapper  # Import the scraper module
+from supermarkets_scrapper import Scrapper
+from db import init_indexes
+from extensions import limiter
 
 
 def main():
     app = Flask(__name__)
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Authorization", "Content-Type"])  # Enable CORS for all routes
 
-    # Register the Blueprint
-    # All routes defined in api_bp will now be accessible under the /api prefix
+    # Trust one layer of reverse-proxy headers so rate limiting uses the
+    # real client IP rather than the proxy's address.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, allow_headers=["Authorization", "Content-Type"])
+
+    # Attach Flask-Limiter to the app
+    limiter.init_app(app)
+
+    # Register blueprints
     app.register_blueprint(api_bp)
+    app.register_blueprint(list_bp)
     app.register_blueprint(frontend_bp)
     # create db files if they do not exist
     create_db_files()
+    # Initialize MongoDB indexes
+    init_indexes()
     # Initialize the scraper
     scraper = Scrapper()
     # Start the scraper in a separate thread

@@ -1,346 +1,289 @@
 # api_routes.py
+import os
 import traceback
 from urllib.parse import urlparse, parse_qs
 
 import requests
-from flask import Blueprint, send_file
+from flask import Blueprint, g, send_file
 from flask import request, jsonify
 
-from helpers import *
-from auth_middleware import require_auth
+from helpers import (
+    generate_item_id,
+    generate_receipt_filename,
+    get_hebrew_city_name,
+    process_receipt_mongo,
+)
+from auth_middleware import require_auth, require_list
+from extensions import limiter
+from security import safe_str, safe_int
+from models.shopping_model import (
+    get_items_dict,
+    name_exists as item_name_exists,
+    add_item,
+    remove_item,
+    update_quantity,
+    set_done,
+)
+from models.meta_mongo import (
+    get_categories,
+    add_category,
+    category_exists,
+    get_suggestions,
+    add_suggestion,
+)
+from models.products_mongo import (
+    get_products_dict,
+    get_product,
+    set_favorite,
+)
+from models.settings_mongo import (
+    get_full_settings,
+    get_liked,
+    add_liked_store,
+    remove_liked_store,
+    _load_static_available,
+)
+from models.receipts_mongo import (
+    link_exists as receipt_link_exists,
+    get_receipts_for_list,
+    save_receipt,
+)
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
 
+# ── Shopping list ─────────────────────────────────────────────────────────────
+
 @api_bp.route('/list', methods=['GET'])
 @require_auth
+@require_list
 def get_shopping_list():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        shopping_list = json.load(f)
-    with open('../databases/categories.json', 'r', encoding='utf-8') as f:
-        categories = json.load(f)
-    shopping_list['categories'] = categories
-    # add also the suggestions from suggestions.json
-    with open('../databases/suggestions.json', 'r', encoding='utf-8') as f:
-        suggestions = json.load(f)
-        # print(suggestions)
-    shopping_list['suggestions'] = suggestions["items"]
+    list_id = g.list_id
+    shopping_list = get_items_dict(list_id)
+    shopping_list['categories'] = get_categories(list_id)
+    shopping_list['suggestions'] = get_suggestions(list_id)
     return jsonify(shopping_list)
 
 
 @api_bp.route('/list/add', methods=['POST'])
 @require_auth
+@require_list
 def add_item_to_list():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        item_list = json.load(f)
+    list_id  = g.list_id
+    body     = request.get_json()
+    item_name = safe_str(body.get('item', ''))
+    quantity  = safe_int(body.get('quantity', 1), default=1)
+    category  = safe_str(body.get('category', 'כללי')) or 'כללי'
 
-    item_name = request.get_json().get('item', '').strip()
-    quantity = request.get_json().get('quantity', 1)
-    category = request.get_json().get('category', 'כללי')
+    if item_name_exists(list_id, item_name):
+        return jsonify({"error": f"Item already exists in the list."}), 400
 
-    # Check if item name already exists in the list (by name, not by ID)
-    for item in item_list.values():
-        if item['name'] == item_name:
-            return jsonify({"error": f"Item already exists in the list. on {item['category']}"}), 400
+    if not category_exists(list_id, category):
+        add_category(list_id, category)
 
-    # --- Handle categories ---
-    with open('../databases/categories.json', 'r', encoding='utf-8') as f:
-        categories = json.load(f)
+    add_suggestion(list_id, item_name)
 
-    if category not in categories:
-        categories[category] = category
-        with open('../databases/categories.json', 'w', encoding='utf-8') as f:
-            json.dump(categories, f, ensure_ascii=False, indent=4)
-
-    # --- Handle suggestions ---
-    with open('../databases/suggestions.json', 'r', encoding='utf-8') as f:
-        suggestions = json.load(f)
-
-    if item_name not in suggestions["items"]:
-        suggestions["items"].append(item_name)
-        with open('../databases/suggestions.json', 'w', encoding='utf-8') as f:
-            json.dump(suggestions, f, ensure_ascii=False, indent=4)
-
-    # --- Create and add item ---
     item = {
-        "id": generate_item_id(),
-        "name": item_name,
-        "done": False,
+        "id":       generate_item_id(),
+        "name":     item_name,
+        "done":     False,
         "quantity": quantity,
-        "category": category
+        "category": category,
     }
-
-    item_list[item['id']] = item
-
-    with open('../databases/list.json', 'w', encoding='utf-8') as f:
-        json.dump(item_list, f, ensure_ascii=False, indent=4)
+    add_item(list_id, item)
 
     return jsonify({"message": f"Item '{item['id']}' added to the list."}), 201
 
+
 @api_bp.route('/list/remove', methods=['POST'])
 @require_auth
+@require_list
 def remove_product_from_list():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        l = json.load(f)
-    itemID = request.get_json()['itemID']
-    if itemID not in l:
+    list_id = g.list_id
+    item_id = int(request.get_json()['itemID'])
+    if not remove_item(list_id, item_id):
         return jsonify({"error": "Item not found in the list."}), 404
-    del l[itemID]
-    with open('../databases/list.json', 'w', encoding='utf-8') as f:
-        json.dump(l, f, ensure_ascii=False, indent=4)
-    return jsonify({"message": f"Item removed from the list."}), 200
+    return jsonify({"message": "Item removed from the list."}), 200
 
 
 @api_bp.route('/list/quantity', methods=['POST'])
 @require_auth
+@require_list
 def change_product_quantity():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        l = json.load(f)
-    itemID = request.get_json()['itemID']
-    new_quantity = request.get_json()['quantity']
-    if itemID not in l:
-        return jsonify({"error": "Item not found in the list."}), 404
+    list_id      = g.list_id
+    body         = request.get_json()
+    item_id      = int(body['itemID'])
+    new_quantity = body['quantity']
     if not isinstance(new_quantity, int) or new_quantity < 0:
         return jsonify({"error": "Quantity must be a non-negative integer."}), 400
-    l[itemID]['quantity'] = new_quantity
-    with open('../databases/list.json', 'w', encoding='utf-8') as f:
-        json.dump(l, f, ensure_ascii=False, indent=4)
-    return jsonify({"message": f"Quantity for item '{itemID}' updated to {new_quantity}."}), 200
+    if not update_quantity(list_id, item_id, new_quantity):
+        return jsonify({"error": "Item not found in the list."}), 404
+    return jsonify({"message": f"Quantity for item '{item_id}' updated to {new_quantity}."}), 200
 
 
 @api_bp.route('/list/done', methods=['POST'])
 @require_auth
+@require_list
 def set_item_as_done():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        l = json.load(f)
-    itemID = str(request.get_json()['itemID'])
-    print(f"Incoming itemID: {itemID}, Current list keys: {l.keys()}")
-    if itemID not in l.keys():
-        print(f"DEBUG: Item ID '{itemID}' not found in list, returning 404.")  # Add this line
+    list_id = g.list_id
+    item_id = int(str(request.get_json()['itemID']))
+    print(f"Incoming itemID: {item_id}")
+    if not set_done(list_id, item_id, True):
+        print(f"DEBUG: Item ID '{item_id}' not found in list, returning 404.")
         return jsonify({"error": "Item not found in the list."}), 404
-    l[itemID]['done'] = True
-    with open('../databases/list.json', 'w', encoding='utf-8') as f:
-        json.dump(l, f, ensure_ascii=False, indent=4)
-    print(f"DEBUG: Item ID '{itemID}' marked as done, returning 200.")  # Add this line
-    return jsonify({"message": f"Item marked as done."}), 200
+    print(f"DEBUG: Item ID '{item_id}' marked as done, returning 200.")
+    return jsonify({"message": "Item marked as done."}), 200
 
 
 @api_bp.route('/list/undone', methods=['POST'])
 @require_auth
+@require_list
 def set_item_as_undone():
-    with open('../databases/list.json', 'r', encoding='utf-8') as f:
-        l = json.load(f)
-    itemID = request.get_json()['itemID']
-    if itemID not in l:
+    list_id = g.list_id
+    item_id = int(request.get_json()['itemID'])
+    if not set_done(list_id, item_id, False):
         return jsonify({"error": "Item not found in the list."}), 404
-    l[itemID]['done'] = False
-    with open('../databases/list.json', 'w', encoding='utf-8') as f:
-        json.dump(l, f, ensure_ascii=False, indent=4)
-    return jsonify({"message": f"Item marked as undone."}), 200
+    return jsonify({"message": "Item marked as undone."}), 200
 
+
+# ── General settings ──────────────────────────────────────────────────────────
 
 @api_bp.route('/generalSettings', methods=['GET'])
 @require_auth
+@require_list
 def get_general_settings():
-    """Returns the general settings from the settings.json file."""
     try:
-        with open('../databases/general_settings.json', 'r', encoding='utf-8') as f:
-            settings_data = json.load(f)
-        return jsonify(settings_data), 200
-    except FileNotFoundError:
-        # If the file does not exist, create it with default values
-        default_settings = {
-            "supermarkets": {
-                "liked": {},
-                "available": {}
-            }
-        }
-        with open('../databases/general_settings.json', 'w', encoding='utf-8') as f:
-            json.dump(default_settings, f, ensure_ascii=False, indent=4)
-        return jsonify(default_settings), 200
-    except json.JSONDecodeError:
-        return jsonify({"error": "Error decoding settings file."}), 500
+        settings = get_full_settings(g.list_id)
+        return jsonify(settings), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @api_bp.route('/generalSettings/remove', methods=['POST'])
 @require_auth
+@require_list
 def remove_general_setting():
-    """ gets storeid from body and removes it from the general settings file. at "liked" section."""
-    try:
-        # Check if the request payload contains 'storeId'
-        if not request.is_json:
-            return jsonify({"error": "Request must be JSON."}), 400
-        if 'StoreId' not in request.json:
-            return jsonify({"error": "storeId is required."}), 400
-        store_id = request.json.get('StoreId', '')
-        if not store_id:
-            return jsonify({"error": "storeId cannot be empty."}), 400
-        # Check if the request payload contains 'brandName'
-        supermarket_name = request.json.get('brandName', '').lower()  # Default to 'osherad' if not provided
-        if not supermarket_name:
-            return jsonify({"error": "brandName is required."}), 400
-        with open('../databases/general_settings.json', 'r', encoding='utf-8') as f:
-            settings_data = json.load(f)
-        liked_supermarkets = settings_data.get('supermarkets', {}).get('liked', {})
-        for branch in liked_supermarkets[supermarket_name]:
-            print(f"Checking branch: {branch['StoreId']} against store_id: {store_id}")
-            if store_id == branch['StoreId'] or store_id == int(branch['StoreId']):
-                print(f"Found matching branch: {branch['StoreId']}, removing it.")
-                # Remove the branch from the liked supermarkets and save the new object
-                liked_supermarkets[supermarket_name].remove(branch)
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON."}), 400
+    if 'StoreId' not in request.json:
+        return jsonify({"error": "storeId is required."}), 400
+    store_id = safe_str(request.json.get('StoreId', ''))
+    if not store_id:
+        return jsonify({"error": "storeId cannot be empty."}), 400
+    brand_name = safe_str(request.json.get('brandName', '')).lower()
+    if not brand_name:
+        return jsonify({"error": "brandName is required."}), 400
 
-                with open('../databases/general_settings.json', 'w', encoding='utf-8') as f:
-                    json.dump(settings_data, f, ensure_ascii=False, indent=4)
-                return jsonify({"message": f"Store {store_id} removed from liked settings."}), 200
-
-        return jsonify({"error": f"Store {store_id} not found in liked settings."}), 404
-    except FileNotFoundError:
-        return jsonify({"error": "file general settings not found."}), 500
-    except json.JSONDecodeError:
-        return jsonify({"error": "Error decoding settings file."}), 500
+    success, reason = remove_liked_store(g.list_id, brand_name, store_id)
+    if not success:
+        if reason == 'store_not_found':
+            return jsonify({"error": f"Store {store_id} not found in liked settings."}), 404
+        return jsonify({"error": reason}), 400
+    return jsonify({"message": f"Store {store_id} removed from liked settings."}), 200
 
 
 @api_bp.route('/generalSettings/add', methods=['POST'])
 @require_auth
+@require_list
 def add_general_setting():
-    """ gets storeid from body and removes it from the general settings file. at "liked" section."""
-    try:
-        StoreId = request.json.get('StoreId', 0)
-        print(f"Received StoreId: {StoreId}")
-        brandName = request.json.get('brandName', '').lower()
-        with open('../databases/general_settings.json', 'r', encoding='utf-8') as f:
-            settings_data = json.load(f)
-        liked_supermarkets = settings_data.get('supermarkets', {}).get('liked', {})
-        # find the supermarket in the available supermarkets, and add the full details to liked supermarkets
-        if brandName not in liked_supermarkets:
-            liked_supermarkets[brandName] = []
-        all_from_brand = settings_data.get('supermarkets', {}).get('available', {}).get(brandName, [])
-        # Check if the store exists in the available supermarkets, storeid can be string like "012" or number like 12,
-        # same as the store['StoreId'] which can be string or number
-        found_store = None
-        for store in all_from_brand:
-            print(
-                f"Checking store: {store['StoreId'], type(store['StoreId'])} against StoreId: {StoreId, type(StoreId)}")
-            if str(store['StoreId']) == str(StoreId):
-                found_store = store
-                break
-        if not found_store:
-            return jsonify({"error": f"Store with StoreId {StoreId} not found in available supermarkets."}), 404
-        # Add the store to the liked supermarkets
-        if brandName not in liked_supermarkets:
-            liked_supermarkets[brandName] = []
-        # Check if the store is already in the liked supermarkets
-        if any(store['StoreId'] == StoreId for store in liked_supermarkets[brandName]):
-            return jsonify({"error": f"Store with StoreId {StoreId} already exists in liked settings."}), 400
-        liked_supermarkets[brandName].append(found_store)
-        # Save the updated settings data back to the file
-        with open('../databases/general_settings.json', 'w', encoding='utf-8') as f:
-            json.dump(settings_data, f, ensure_ascii=False, indent=4)
-        # Return a success message
-        return jsonify({"message": f"Store {StoreId} added to liked settings."}), 200
+    store_id   = safe_str(request.json.get('StoreId', ''))
+    brand_name = safe_str(request.json.get('brandName', '')).lower()
+    print(f"Received StoreId: {store_id}, brandName: {brand_name}")
 
-    except FileNotFoundError:
-        return jsonify({"error": "file general settings not found."}), 500
-    except json.JSONDecodeError:
-        return jsonify({"error": "Error decoding settings file."}), 500
+    available  = _load_static_available()
+    all_from_brand = available.get(brand_name, [])
+
+    found_store = next(
+        (s for s in all_from_brand if str(s['StoreId']) == str(store_id)),
+        None
+    )
+    if not found_store:
+        return jsonify({"error": f"Store with StoreId {store_id} not found in available supermarkets."}), 404
+
+    success, reason = add_liked_store(g.list_id, brand_name, found_store)
+    if not success:
+        if reason == 'already_exists':
+            return jsonify({"error": f"Store with StoreId {store_id} already exists in liked settings."}), 400
+        return jsonify({"error": reason}), 400
+    return jsonify({"message": f"Store {store_id} added to liked settings."}), 200
 
 
-
+# ── Stats ─────────────────────────────────────────────────────────────────────
 
 @api_bp.route('/stats', methods=['GET'])
 @require_auth
+@require_list
 def get_stats():
-    with open('../databases/stats.json', 'r', encoding='utf-8') as f:
-        stats_data = json.load(f)
-    return jsonify(stats_data)
+    from db import get_db
+    db = get_db()
+    stats = db['stats'].find_one({'listId': g.list_id}, {'_id': 0, 'listId': 0})
+    if not stats:
+        stats = {
+            "total_receipts": 0, "total_spent": 0.0, "total_items": 0,
+            "average_spend_per_receipt": 0.0, "top_10_product_purchased": [],
+            "top_10_price_increase": [], "top_10_price_drop": [], "receipts": {}
+        }
+    return jsonify(stats)
 
 
 @api_bp.route('/stats/<barcode>', methods=['GET'])
 @require_auth
+@require_list
 def get_product_stats(barcode):
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        stats_data = json.load(f)
-    if barcode in stats_data.keys():
-        product_stats = stats_data[barcode]
-        # Return only the stats of the product with the given barcode
-        return jsonify(product_stats), 200
+    product = get_product(g.list_id, barcode)
+    if product:
+        return jsonify(product), 200
     return jsonify({"error": f"Product with barcode '{barcode}' not found."}), 404
 
 
+# ── Favorites ─────────────────────────────────────────────────────────────────
+
 @api_bp.route('/favorites/add', methods=['POST'])
 @require_auth
+@require_list
 def add_product_to_favorites():
-    barcode = request.json.get('barcode', '')
+    barcode = safe_str(request.json.get('barcode', ''))
     if not barcode:
         return jsonify({"error": "Barcode is required."}), 400
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        products_data = json.load(f)
-    if barcode not in products_data:
+    if not set_favorite(g.list_id, barcode, True):
         return jsonify({"error": f"Product with barcode '{barcode}' not found."}), 404
-    product = products_data[barcode]
-    product['favorite'] = True
-    with open('../databases/products.json', 'w', encoding='utf-8') as f:
-        json.dump(products_data, f, ensure_ascii=False, indent=4)
     return jsonify({"message": f"Product '{barcode}' added to favorites."}), 200
 
 
 @api_bp.route('/favorites/remove', methods=['POST'])
 @require_auth
+@require_list
 def remove_product_from_favorites():
-    barcode = request.json.get('barcode', '')
+    barcode = safe_str(request.json.get('barcode', ''))
     if not barcode:
         return jsonify({"error": "Barcode is required."}), 400
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        products_data = json.load(f)
-    if barcode not in products_data:
+    if not set_favorite(g.list_id, barcode, False):
         return jsonify({"error": f"Product with barcode '{barcode}' not found."}), 404
-    product = products_data[barcode]
-    product['favorite'] = False
-    with open('../databases/products.json', 'w', encoding='utf-8') as f:
-        json.dump(products_data, f, ensure_ascii=False, indent=4)
     return jsonify({"message": f"Product '{barcode}' removed from favorites."}), 200
 
 
-
-
-
-
-
-
+# ── Receipts ──────────────────────────────────────────────────────────────────
 
 @api_bp.route('/receipts', methods=['GET'])
 @require_auth
+@require_list
 def get_receipts_list():
-    """Returns a list of all receipts. list all files of the receipts folder, keep on hierarchy, and return as JSON.
-    :return as: {
-    "companyName": {"cityName": ["receipt1.json", "receipt2.json", ...], ...},....
-    for every receipt, open the file and select from the json the following fields:
-    total, createdDate. and attach it to the json
-    }
-    """
     receipts = []
-    base_path = '../receipts'
     try:
-        for company_name in os.listdir(base_path):
-            company_path = os.path.join(base_path, company_name)
-            if os.path.isdir(company_path):
-                for city_name in os.listdir(company_path):
-                    city_path = os.path.join(company_path, city_name)
-                    if os.path.isdir(city_path):
-                        for receipt_file in os.listdir(city_path):
-                            if receipt_file.endswith('.json'):
-                                receipt_path = os.path.join(city_path, receipt_file)
-                                with open(receipt_path, 'r', encoding='utf-8') as f:
-                                    receipt_data = json.load(f)
-                                    receipts.append({
-                                        "company": "אושר עד" if company_name == "osherad" else "יוחננוף" if company_name == "yohananof" else company_name,
-                                        "city": get_hebrew_city_name(city_name),
-                                        "file": receipt_file.replace('.json', ''),
-                                        "total": receipt_data.get('total', 0),
-                                        "createdDate": receipt_data.get('createdDate', 'Unknown')
-                                    })
+        for doc in get_receipts_for_list(g.list_id):
+            company_name = doc.get('company', '')
+            city_english = doc.get('cityEnglish', '')
+            receipts.append({
+                "company":     "אושר עד" if company_name == "osherad"
+                               else "יוחננוף" if company_name == "yohananof"
+                               else company_name,
+                "city":        get_hebrew_city_name(city_english),
+                "file":        doc.get('receiptId', ''),
+                "total":       doc.get('total', 0),
+                "createdDate": doc.get('createdDate', 'Unknown'),
+            })
     except Exception as e:
-        return jsonify({"error": f"Error reading receipts directory: {str(e)}"}), 500
+        return jsonify({"error": f"Error reading receipts: {str(e)}"}), 500
     return jsonify(receipts), 200
 
 
@@ -349,14 +292,12 @@ def get_receipts_list():
 def download_receipt(receipt_number):
     base_path = '../original_receipts_backup'
     try:
-        print("Searching for receipt:", receipt_number + '.pdf', "in path:", os.listdir(base_path))
         filename = receipt_number + '.pdf'
         if filename in os.listdir(base_path):
             receipt_path = os.path.join(base_path, filename)
             return send_file(receipt_path, as_attachment=True,
                              download_name=f'{generate_receipt_filename()}.pdf')
-        else:
-            return jsonify({"error": f"Receipt '{receipt_number}' not found."}), 404
+        return jsonify({"error": f"Receipt '{receipt_number}' not found."}), 404
     except Exception as e:
         return jsonify({"error": f"Error reading receipts directory: {str(e)}"}), 500
 
@@ -366,221 +307,296 @@ def download_receipt(receipt_number):
 def show_receipt(receipt_number):
     base_path = '../original_receipts_backup'
     try:
-        print("Searching for receipt:", receipt_number + '.pdf', "in path:", os.listdir(base_path))
         filename = receipt_number + '.pdf'
         if filename in os.listdir(base_path):
             receipt_path = os.path.join(base_path, filename)
-            # Return the PDF file directly
             return send_file(receipt_path, as_attachment=False,
                              download_name=f'{generate_receipt_filename()}.pdf')
-        else:
-            return jsonify({"error": f"Receipt '{receipt_number}' not found."}), 404
+        return jsonify({"error": f"Receipt '{receipt_number}' not found."}), 404
     except Exception as e:
         return jsonify({"error": f"Error reading receipts directory: {str(e)}"}), 500
 
-@api_bp.route('/products', methods=['GET'])
-@require_auth
-def get_products():
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        products_data = json.load(f)
-    return jsonify(products_data)
-
-
-@api_bp.route('/productsbrowser', methods=['GET'])
-@require_auth
-def get_productsBrowser():
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        products_data = json.load(f)
-    return jsonify(products_data)
-
-
-
-@api_bp.route('/product/<barcode>/settings', methods=['GET'])
-@require_auth
-def get_product_settings(barcode):
-    # from products.json return only the settings of the product with the given barcode
-    barcode = request.view_args.get('barcode')
-    if not barcode:
-        return jsonify({"error": "Barcode is required."}), 400
-    with open('../databases/products.json', 'r', encoding='utf-8') as f:
-        products_data = json.load(f)
-    if barcode in products_data.keys():
-        product = products_data[barcode]
-        settings = product.get('settings', {})
-        settings['barcode'] = product['barcode']
-        settings['name'] = product['name']
-        return jsonify(settings), 200
-    return jsonify({"error": f"Product with barcode '{barcode}' not found."}), 404
-
 
 @api_bp.route('/fetchReceipt', methods=['POST'])
+@limiter.limit("30 per minute")
 @require_auth
+@require_list
 def fetch_receipt():
-    data = request.get_json()
+    list_id = g.list_id
+    data    = request.get_json()
     raw_url = data.get('url')
     if not raw_url:
-        # Return an error if no URL is provided in the request
         return jsonify({"error": "URL is required in the request body."}), 400
 
     try:
         # Step 1: Follow the redirect to get the actual document URL
         redirect_response = requests.get(raw_url, allow_redirects=True)
-        final_url = redirect_response.url
+        final_url         = redirect_response.url
 
-        # Step 2: Parse the redirected URL to extract query parameters
-        parsed_url = urlparse(final_url)
+        # Step 2: Parse redirected URL to extract query parameters
+        parsed_url  = urlparse(final_url)
         query_params = parse_qs(parsed_url.query)
-        doc_id = query_params.get('id', [''])[0]
+        doc_id  = query_params.get('id', [''])[0]
         p_param = query_params.get('p', [''])[0]
 
         if not doc_id:
             return jsonify({"error": "Could not extract document ID from redirected URL."}), 400
 
         # Step 3: Construct the final document fetch URL
-        base_domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        base_domain   = f"{parsed_url.scheme}://{parsed_url.netloc}"
         converted_url = f"{base_domain}/v1.0/documents/{doc_id}"
         if p_param:
             converted_url += f"?p={p_param}"
         print(f"Converted URL: {converted_url}")
 
-        # Step 4: Fetch the receipt data from the converted URL
+        # Duplicate check — before we do any work
+        if receipt_link_exists(list_id, raw_url):
+            return jsonify({"error": "receipt already exists."}), 400
+
+        # Step 4: Fetch the receipt data
         response = requests.get(converted_url)
 
-        if response.status_code == 200:
-            # Parse the JSON content from the response
-            receipt_json = response.json()
-            print(f"Fetched receipt data: {receipt_json}")
-            company_name = ""
-            if 'osher' in final_url:
-                company_name = "osherad"
-            elif 'yohananof' in final_url:
-                company_name = "yohananof"
-
-            # Use the value from 'additionalInfo' as the filename, as requested
-            try:
-                filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
-                print(f"Extracted filename value: {filename_value}")
-                receipt_filename = f"{filename_value}.json"
-
-            except (KeyError, TypeError):
-                # Handle cases where the key might not exist or the structure is different
-                return jsonify({"error": "Could not find 'additionalInfo.value' in receipt data."}), 500
-            city_english = "Unknown City"  # Default value in case we can't determine the city
-
-            try:
-                # download original receipt for original_receipts_backup
-                original_receipt_path = f"https://pdf.pairzon.com/pdf/{doc_id}/{p_param}"
-                print(f"downloading original receipt for backup - {original_receipt_path}")
-                # save the original receipt as pdf to ../receipts/original_receipts_backup
-                original_receipt_response = requests.get(original_receipt_path)
-                if original_receipt_response.status_code == 200:
-                    original_receipt_filename = f"original_receipt_{doc_id}_{p_param}.pdf"
-                    original_receipt_save_path = f"../original_receipts_backup/{filename_value}.pdf"
-                    os.makedirs(os.path.dirname(original_receipt_save_path), exist_ok=True)
-                    with open(original_receipt_save_path, 'wb') as f:
-                        f.write(original_receipt_response.content)
-                    print(f"Original receipt saved to {original_receipt_save_path}")
-            except requests.exceptions.RequestException as e:
-                print(f"Error downloading original receipt: {str(e)}")
-                return jsonify({"error": f"Failed to download original receipt: {str(e)}"}), 500
-
-            try:
-                # Identify the store name from the receipt
-                city_hebrew = receipt_json['store']['name']
-                print(f"Branch identified: {city_hebrew}")
-
-                # using a dictionary, which is more reliable than a generic web search
-                with open('../databases/cities.json', 'r', encoding='utf-8') as f:
-                    city_translation_map = json.load(f)
-
-                # Look up the city in the translation map
-                city_english = city_translation_map.get(city_hebrew, "Unknown City")
-                print(f"Hebrew city '{city_hebrew}' translated to English city '{city_english}'.")
-
-            except KeyError:
-                # Handle cases where the branch name is not available in the JSON
-                print("Branch name not found in receipt data.")
-
-            # Step 5: Save the receipt to the designated path
-            save_path = f"../receipts/{company_name}/{city_english}/{receipt_filename}".lower()
-            if os.path.exists(save_path):
-            #     # If the file already exists, we can either overwrite or skip
-            #     print(f"File {save_path} already exists. exiting")
-                return jsonify({"error": f"receipt number {receipt_filename} already exists."}), 400
-
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            with open(save_path, 'w', encoding='utf-8') as f:
-                json.dump(receipt_json, f, ensure_ascii=False, indent=4)
-
-            process_receipt_file(save_path)  # This is a placeholder function, you need to implement it.
-
-            return jsonify({
-                "message": "Receipt fetched and processed successfully.",
-                "converted_url": converted_url,
-                "saved_filename": receipt_filename.split('.')[0],  # Return the filename without extension  ),
-            }), 200
-        else:
-            # Handle cases where the fetch from the converted URL failed
+        if response.status_code != 200:
             return jsonify({
                 "error": f"Failed to download receipt from {converted_url}",
                 "status_code": response.status_code
             }), response.status_code
 
+        receipt_json = response.json()
+        print(f"Fetched receipt data: {receipt_json}")
+
+        company_name = ""
+        if 'osher' in final_url:
+            company_name = "osherad"
+        elif 'yohananof' in final_url:
+            company_name = "yohananof"
+
+        try:
+            filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
+            print(f"Extracted filename value: {filename_value}")
+        except (KeyError, TypeError):
+            return jsonify({"error": "Could not find 'additionalInfo.value' in receipt data."}), 500
+
+        city_english = "Unknown City"
+        try:
+            city_hebrew  = receipt_json['store']['name']
+            print(f"Branch identified: {city_hebrew}")
+            import json as _json
+            with open('../databases/cities.json', 'r', encoding='utf-8') as f:
+                city_translation_map = _json.load(f)
+            city_english = city_translation_map.get(city_hebrew, "Unknown City")
+            print(f"Hebrew city '{city_hebrew}' → '{city_english}'.")
+        except KeyError:
+            print("Branch name not found in receipt data.")
+
+        # Step 5: Download original PDF backup (file system — unchanged)
+        try:
+            original_receipt_path = f"https://pdf.pairzon.com/pdf/{doc_id}/{p_param}"
+            print(f"Downloading original receipt for backup: {original_receipt_path}")
+            original_receipt_response = requests.get(original_receipt_path)
+            if original_receipt_response.status_code == 200:
+                original_receipt_save_path = f"../original_receipts_backup/{filename_value}.pdf"
+                os.makedirs(os.path.dirname(original_receipt_save_path), exist_ok=True)
+                with open(original_receipt_save_path, 'wb') as f:
+                    f.write(original_receipt_response.content)
+                print(f"Original receipt saved to {original_receipt_save_path}")
+        except requests.exceptions.RequestException as e:
+            print(f"Error downloading original receipt: {str(e)}")
+            return jsonify({"error": f"Failed to download original receipt: {str(e)}"}), 500
+
+        # Step 6: Save receipt metadata to MongoDB + process products/stats
+        created_date = receipt_json.get('createdDate', '').replace("T", " ")
+        total        = receipt_json.get('total', 0.0)
+
+        save_receipt(
+            list_id      = list_id,
+            original_link = raw_url,
+            company       = company_name,
+            city_english  = city_english,
+            receipt_id    = filename_value,
+            total         = total,
+            created_date  = created_date,
+        )
+
+        process_receipt_mongo(list_id, receipt_json, original_link=raw_url)
+
+        return jsonify({
+            "message":       "Receipt fetched and processed successfully.",
+            "converted_url": converted_url,
+            "saved_filename": filename_value,
+        }), 200
+
     except requests.exceptions.RequestException as e:
-        # Catch network-related errors during the fetch
         return jsonify({"error": f"Network error during receipt fetch: {str(e)}"}), 500
     except Exception as e:
-        # Catch any other unexpected errors
         return jsonify({"error": f"Error processing receipt: {str(e)}", "stacktrace": traceback.format_exc()}), 500
 
 
+@api_bp.route('/receipts/sync', methods=['POST'])
+@limiter.limit("25 per minute")
+@require_auth
+@require_list
+def sync_receipt():
+    """
+    SMS-sync variant of fetchReceipt.
+
+    Differences from /fetchReceipt:
+    - Duplicate link → HTTP 200 {"status": "duplicate"} (not 400)
+      so the client can treat it as a no-op without error handling.
+    - PDF backup failure is non-fatal (logged, process continues).
+    - Simpler response body — only status and saved_filename.
+
+    Body: { "url": "<pairzon URL extracted from OSHERAD SMS>" }
+    """
+    list_id = g.list_id
+    data    = request.get_json()
+    raw_url = data.get('url')
+    if not raw_url:
+        return jsonify({"error": "URL is required."}), 400
+
+    # ── Duplicate prevention (return success so client skips silently) ─────
+    if receipt_link_exists(list_id, raw_url):
+        return jsonify({"status": "duplicate"}), 200
+
+    try:
+        # Step 1: Follow redirect
+        redirect_response = requests.get(raw_url, allow_redirects=True, timeout=15)
+        final_url         = redirect_response.url
+
+        # Step 2: Extract doc params
+        parsed_url   = urlparse(final_url)
+        query_params = parse_qs(parsed_url.query)
+        doc_id  = query_params.get('id', [''])[0]
+        p_param = query_params.get('p', [''])[0]
+
+        if not doc_id:
+            return jsonify({"error": "Could not extract document ID from redirected URL."}), 400
+
+        base_domain   = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        converted_url = f"{base_domain}/v1.0/documents/{doc_id}"
+        if p_param:
+            converted_url += f"?p={p_param}"
+
+        # Step 3: Fetch receipt JSON
+        response = requests.get(converted_url, timeout=15)
+        if response.status_code != 200:
+            return jsonify({"error": f"Failed to fetch receipt (HTTP {response.status_code})"}), 502
+
+        receipt_json = response.json()
+
+        company_name = "osherad" if 'osher' in final_url else ("yohananof" if 'yohananof' in final_url else "")
+
+        try:
+            filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
+        except (KeyError, TypeError):
+            return jsonify({"error": "Could not parse additionalInfo from receipt."}), 500
+
+        city_english = "Unknown City"
+        try:
+            city_hebrew = receipt_json['store']['name']
+            import json as _json
+            with open('../databases/cities.json', 'r', encoding='utf-8') as f:
+                city_map = _json.load(f)
+            city_english = city_map.get(city_hebrew, "Unknown City")
+        except Exception:
+            pass  # non-fatal — city stays "Unknown City"
+
+        # Step 4: PDF backup — non-fatal
+        try:
+            pdf_url  = f"https://pdf.pairzon.com/pdf/{doc_id}/{p_param}"
+            pdf_resp = requests.get(pdf_url, timeout=15)
+            if pdf_resp.status_code == 200:
+                save_path = f"../original_receipts_backup/{filename_value}.pdf"
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                with open(save_path, 'wb') as f:
+                    f.write(pdf_resp.content)
+        except Exception as pdf_err:
+            print(f"sync_receipt: PDF backup failed (non-fatal): {pdf_err}")
+
+        # Step 5: Save to MongoDB + process products/stats
+        created_date = receipt_json.get('createdDate', '').replace("T", " ")
+        total        = receipt_json.get('total', 0.0)
+
+        save_receipt(
+            list_id       = list_id,
+            original_link = raw_url,
+            company       = company_name,
+            city_english  = city_english,
+            receipt_id    = filename_value,
+            total         = total,
+            created_date  = created_date,
+        )
+        process_receipt_mongo(list_id, receipt_json, original_link=raw_url)
+
+        return jsonify({"status": "processed", "saved_filename": filename_value}), 200
+
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "Request timed out."}), 504
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Network error: {str(e)}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"Unexpected error: {str(e)}", "stacktrace": traceback.format_exc()}), 500
+
+
+# ── Products ──────────────────────────────────────────────────────────────────
+
+@api_bp.route('/products', methods=['GET'])
+@require_auth
+@require_list
+def get_products():
+    return jsonify(get_products_dict(g.list_id))
+
+
+@api_bp.route('/productsbrowser', methods=['GET'])
+@require_auth
+@require_list
+def get_productsBrowser():
+    return jsonify(get_products_dict(g.list_id))
+
+
+@api_bp.route('/product/<barcode>/settings', methods=['GET'])
+@require_auth
+@require_list
+def get_product_settings(barcode):
+    barcode = request.view_args.get('barcode')
+    if not barcode:
+        return jsonify({"error": "Barcode is required."}), 400
+    product = get_product(g.list_id, barcode)
+    if not product:
+        return jsonify({"error": f"Product with barcode '{barcode}' not found."}), 404
+    settings = product.get('settings', {})
+    settings['barcode'] = product['barcode']
+    settings['name']    = product['name']
+    return jsonify(settings), 200
+
+
+# ── Prices ────────────────────────────────────────────────────────────────────
+
 @api_bp.route('/prices', methods=['GET'])
 @require_auth
+@require_list
 def get_prices():
     all_prices_data = []
     try:
-
-
-        # #____________________test_______________
-        # with open('../databases/liked_supermarkets_parsed_prices/example_res.json', 'r', encoding='utf-8') as f:
-        #     data = json.load(f)
-        # return jsonify(data)
-
-
-
-
-
-
-        # 1. Read general settings to find liked supermarkets
-        with open('../databases/general_settings.json', 'r', encoding='utf-8') as f:
-            settings_data = json.load(f)
-            liked = settings_data.get('supermarkets', {}).get('liked', {})
-
-        # 2. For every liked supermarket, search for and read its price file
+        liked = get_liked(g.list_id)
         parsed_prices_folder = '../databases/liked_supermarkets_parsed_prices'
 
         for supermarket_name, branches in liked.items():
             for branch in branches:
                 branch_id = branch.get('StoreId')
-                # Construct the expected filename based on the pattern
-                filename = f"{supermarket_name}_{branch_id}_full_prices.json"
+                filename  = f"{supermarket_name}_{branch_id}_full_prices.json"
                 file_path = os.path.join(parsed_prices_folder, filename)
 
                 if os.path.exists(file_path):
+                    import json as _json
                     with open(file_path, 'r', encoding='utf-8') as price_file:
-                        price_data = json.load(price_file)
+                        price_data = _json.load(price_file)
                         price_data[supermarket_name] = branch
                         all_prices_data.append(price_data)
                 else:
                     print(f"File not found: {file_path}")
 
-    except FileNotFoundError:
-        return jsonify({"error": "general_settings.json file not found"}), 404
-    except json.JSONDecodeError:
-        return jsonify({"error": "Failed to decode JSON from one of the files"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
     return jsonify(all_prices_data)
-
-

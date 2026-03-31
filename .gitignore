@@ -4,3 +4,4 @@ databases/liked_supermarkets_parsed_prices
 serviceAccountKey.json
 server/.env
 node_modules/
+serviceAccountKey.json
