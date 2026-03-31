@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סטטיסטיקה</title>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.44C4.9 17.13 6.13 18.25 7.5 18.25h11.17v-2H7.5c-.55 0-1-.45-1-1s.45-1 1-1h12.17c.55 0 1.05-.27 1.34-.71L23.5 6.47c.23-.45-.06-.97-.57-.97H6.95l-.9-1.87c-.36-.73-1.09-1.2-1.92-1.2H1V2zm14 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex; /* Use flexbox for overall layout */
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #1f2937; /* Dark gray for sidebar */
+            color: #d1d5db;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed; /* Fixed for mobile, then changed to relative for desktop */
+            top: 0;
+            right: -250px; /* Initially off-screen to the right for RTL */
+            height: 100%;
+            transition: right 0.3s ease-in-out; /* Smooth transition for sliding */
+            z-index: 2000; /* Ensure it's above other content */
+        }
+        .sidebar.open {
+            right: 0; /* Slide in */
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                position: relative; /* Back to normal flow on desktop */
+                right: 0; /* Always visible */
+                flex-shrink: 0; /* Don't shrink sidebar */
+            }
+        }
+
+        .main-content {
+            flex-grow: 1; /* Allow main content to take remaining space */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 0; /* No margin on mobile */
+            transition: margin-right 0.3s ease-in-out; /* For pushing content on desktop */
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                margin-right: 250px; /* Adjust for sidebar width when open */
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Max width for content */
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners for the main card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        /* Hamburger menu icon */
+        .hamburger-icon {
+            display: block; /* Show on mobile */
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem; /* Position on the right for RTL */
+            z-index: 3000; /* Above sidebar */
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media (min-width: 768px) {
+            .hamburger-icon {
+                display: none; /* Hide on desktop */
+            }
+        }
+
+        .active-link {
+            background-color: #4f46e5;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .clickable-item {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .clickable-item:hover {
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Hamburger Menu Icon for Mobile -->
+<div id="hamburgerIcon" class="hamburger-icon">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</div>
+
+<!-- Sidebar -->
+{% include "sidebar.html" %}
+
+<!-- Main Content Area -->
+<div class="main-content">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">סטטיסטיקות</h1>
+
+        <!-- Loading spinner -->
+        <div id="loading" class="flex justify-center items-center h-64">
+            <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        </div>
+
+        <div id="content" class="hidden">
+            <!-- Statistics Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1: Average Receipt Price -->
+                <div class="bg-indigo-100 p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                    <div class="text-2xl font-bold text-indigo-700" id="avgPrice">...</div>
+                    <div class="text-sm text-indigo-500 mt-2">מחיר קבלה ממוצע</div>
+                </div>
+                <!-- Card 2: Average Shopping Frequency -->
+                <div class="bg-indigo-100 p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                    <div class="text-2xl font-bold text-indigo-700" id="avgFrequency">...</div>
+                    <div class="text-sm text-indigo-500 mt-2">קניות לחודש (ממוצע)</div>
+                </div>
+                <!-- Card 3: Total Items Purchased -->
+                <div class="bg-indigo-100 p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                    <div class="text-2xl font-bold text-indigo-700" id="totalItems">...</div>
+                    <div class="text-sm text-indigo-500 mt-2">סה"כ פריטים שנקנו</div>
+                </div>
+                <!-- Card 4: Most Purchased Item -->
+                <div class="bg-indigo-100 p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                    <div class="text-2xl font-bold text-indigo-700 text-center" id="mostPurchasedItem">...</div>
+                    <div class="text-sm text-indigo-500 mt-2">פריט שנרכש הכי הרבה</div>
+                </div>
+                <!-- Card 5: Average Items per Receipt -->
+                <div class="bg-indigo-100 p-6 rounded-lg shadow-md flex flex-col items-center justify-center">
+                    <div class="text-2xl font-bold text-indigo-700" id="avgItemsPerReceipt">...</div>
+                    <div class="text-sm text-indigo-500 mt-2">פריטים לקבלה (ממוצע)</div>
+                </div>
+            </div>
+
+            <!-- Graphs Section and Price Increase List -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- New section: Highest Price Increase (Moved to the top) -->
+                <div class="bg-red-100 p-6 rounded-lg shadow-md lg:col-span-2">
+                    <h2 class="text-xl font-bold text-red-700 mb-4 text-center">התייקרות מוצרים בולטת</h2>
+                    <ul id="priceIncreaseList" class="space-y-2 text-right">
+                        <!-- Items will be inserted here by JavaScript -->
+                    </ul>
+                </div>
+                <!-- List of Top 5 Items (Moved to second place) -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">5 הפריטים הנרכשים ביותר</h2>
+                    <ul id="topItemsList" class="space-y-2 text-right">
+                        <!-- Items will be inserted here by JavaScript -->
+                    </ul>
+                </div>
+                <!-- Chart 1: Monthly Expenses (Moved to the end) -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">הוצאות חודשיות</h2>
+                    <div class="relative h-96">
+                        <canvas id="monthlyExpensesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        const loading = document.getElementById('loading');
+        const content = document.getElementById('content');
+
+        // Toggles the 'open' class on the sidebar when the hamburger icon is clicked
+        hamburgerIcon.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Closes the sidebar when clicking outside of it on mobile
+        window.addEventListener('click', (event) => {
+            // Only close if the sidebar is open, and the click is not inside the sidebar or hamburger icon
+            if (sidebar.classList.contains('open') && !sidebar.contains(event.target) && !hamburgerIcon.contains(event.target)) {
+                // Check for viewport width to only apply this on mobile
+                if (window.innerWidth < 768) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+
+        // Set the active link in the sidebar
+        const links = document.querySelectorAll('.sidebar a');
+        links.forEach(link => {
+            if (link.href.includes('/stats')) {
+                link.classList.add('active-link');
+                link.classList.remove('text-gray-300', 'hover:text-white', 'hover:bg-gray-700');
+            }
+        });
+
+        // Function to process receipts into monthly expenses for Chart.js
+        const calculateMonthlyExpenses = (receipts) => {
+            const monthlyData = {};
+            const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+
+            // Sort receipts by date to ensure the chart is chronological
+            const sortedReceipts = Object.values(receipts).sort((a, b) => {
+                const dateA = new Date(a.date_and_time);
+                const dateB = new Date(b.date_and_time);
+                return dateA - dateB;
+            });
+
+            sortedReceipts.forEach(receipt => {
+                const date = new Date(receipt.date_and_time);
+                const monthIndex = date.getMonth();
+                const year = date.getFullYear();
+                const monthLabel = `${months[monthIndex]} ${year}`;
+
+                if (monthlyData[monthLabel]) {
+                    monthlyData[monthLabel] += receipt.total_price;
+                } else {
+                    monthlyData[monthLabel] = receipt.total_price;
+                }
+            });
+
+            return {
+                labels: Object.keys(monthlyData),
+                data: Object.values(monthlyData)
+            };
+        };
+
+        // Function to fetch data and render the page
+        const fetchStatsAndRender = async () => {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const stats = await response.json();
+
+                // Hide loading spinner and show content
+                loading.classList.add('hidden');
+                content.classList.remove('hidden');
+
+                // 1. Populate the stats cards
+                document.getElementById('avgPrice').textContent = `₪${stats.average_spend_per_receipt.toFixed(2)}`;
+
+                // Calculate average shopping frequency
+                const receiptDates = Object.values(stats.receipts).map(r => new Date(r.date_and_time));
+                let avgFrequency = 'N/A';
+                if (receiptDates.length > 1) {
+                    const minDate = new Date(Math.min(...receiptDates));
+                    const maxDate = new Date(Math.max(...receiptDates));
+                    const monthsDiff = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth()) + 1;
+                    avgFrequency = (stats.total_receipts / monthsDiff).toFixed(1);
+                }
+                document.getElementById('avgFrequency').textContent = avgFrequency;
+
+                document.getElementById('totalItems').textContent = stats.total_items;
+                document.getElementById('mostPurchasedItem').textContent = stats.top_10_product_purchased.length > 0 ? stats.top_10_product_purchased[0].name : 'N/A';
+
+                // Calculate average items per receipt
+                const avgItemsPerReceipt = stats.total_receipts > 0 ? (stats.total_items / stats.total_receipts).toFixed(1) : '0';
+                document.getElementById('avgItemsPerReceipt').textContent = avgItemsPerReceipt;
+
+                // 2. Render the top items list
+                const topItemsList = document.getElementById('topItemsList');
+                topItemsList.innerHTML = ''; // Clear mock data
+                stats.top_10_product_purchased.slice(0, 5).forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center bg-indigo-50 p-3 rounded-md shadow-sm clickable-item';
+                    listItem.dataset.barcode = item.barcode;
+                    listItem.innerHTML = `
+                        <span class="font-semibold text-indigo-700">${item.total_quantity}</span>
+                        <span>${item.name}</span>
+                    `;
+                    topItemsList.appendChild(listItem);
+                });
+                // Add click listener for top items
+                topItemsList.addEventListener('click', (event) => {
+                    const li = event.target.closest('li.clickable-item');
+                    if (li) {
+                        const barcode = li.dataset.barcode;
+                        window.location.href = `/stats/${barcode}`;
+                    }
+                });
+
+                // 3. Render the price increase list
+                const priceIncreaseList = document.getElementById('priceIncreaseList');
+                priceIncreaseList.innerHTML = ''; // Clear mock data
+                stats.top_10_price_increase.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'flex justify-between items-center bg-white p-3 rounded-md shadow-sm clickable-item';
+                    listItem.dataset.barcode = item.barcode;
+                    listItem.innerHTML = `
+                        <div class="flex flex-col items-center">
+                            <span class="font-bold text-red-600">${item.price_increase > 0 ? `+${item.price_increase.toFixed(1)}%` : '0%'}</span>
+                            <span class="text-xs text-gray-500">
+                                מ-₪${item.old_price.toFixed(2)} ל-₪${item.new_price.toFixed(2)}
+                            </span>
+                        </div>
+                        <span class="text-gray-800 font-medium">${item.name}</span>
+                    `;
+                    priceIncreaseList.appendChild(listItem);
+                });
+                // Add click listener for price increase items
+                priceIncreaseList.addEventListener('click', (event) => {
+                    const li = event.target.closest('li.clickable-item');
+                    if (li) {
+                        const barcode = li.dataset.barcode;
+                        window.location.href = `/stats/${barcode}`;
+                    }
+                });
+
+                // 4. Render the monthly expenses chart
+                const monthlyExpenses = calculateMonthlyExpenses(stats.receipts);
+                const monthlyExpensesCtx = document.getElementById('monthlyExpensesChart').getContext('2d');
+                new Chart(monthlyExpensesCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: monthlyExpenses.labels,
+                        datasets: [{
+                                label: 'הוצאות חודשיות (₪)',
+                            data: monthlyExpenses.data,
+                            backgroundColor: 'rgba(79, 70, 229, 0.6)',
+                            borderColor: 'rgb(79, 70, 229)',
+                            borderWidth: 1,
+                            borderRadius: 5,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        family: 'Inter',
+                                        size: 14,
+                                    },
+                                }
+                            },
+                            title: {
+                                display: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₪' + value;
+                                    },
+                                    font: {
+                                        family: 'Inter'
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        family: 'Inter'
+                                    }
+                                }
+                            }
+                        },
+                        layout: {
+                            padding: 10
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Failed to fetch statistics:', error);
+                // In a real application, you would show a user-friendly error message
+                loading.textContent = 'Failed to load statistics. Please try again later.';
+            }
+        };
+
+        fetchStatsAndRender();
+    });
+</script>
+</body>
+</html>

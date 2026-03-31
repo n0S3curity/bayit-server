@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>רשימת קניות</title>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.44C4.9 17.13 6.13 18.25 7.5 18.25h11.17v-2H7.5c-.55 0-1-.45-1-1s.45-1 1-1h12.17c.55 0 1.05-.27 1.34-.71L23.5 6.47c.23-.45-.06-.97-.57-.97H6.95l-.9-1.87c-.36-.73-1.09-1.2-1.92-1.2H1V2zm14 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QuaggaJS Barcode Scanner Library -->
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex; /* Use flexbox for overall layout */
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #1f2937; /* Dark gray for sidebar */
+            color: #d1d5db;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed; /* Fixed for mobile, then changed to relative for desktop */
+            top: 0;
+            right: -250px; /* Initially off-screen to the right for RTL */
+            height: 100%;
+            transition: right 0.3s ease-in-out; /* Smooth transition for sliding */
+            z-index: 2000; /* Ensure it's above other content */
+        }
+        .sidebar.open {
+            right: 0; /* Slide in */
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                position: relative; /* Back to normal flow on desktop */
+                right: 0; /* Always visible */
+                flex-shrink: 0; /* Don't shrink sidebar */
+            }
+        }
+
+        .main-content {
+            flex-grow: 1; /* Allow main content to take remaining space */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; /* For floating button */
+            margin-right: 0; /* No margin on mobile */
+            transition: margin-right 0.3s ease-in-out; /* For pushing content on desktop */
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                margin-right: 250px; /* Adjust for sidebar width when open */
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Max width for content */
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners for the main card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem; /* Space for floating button */
+        }
+        /* CORRECTED FLOATING BUTTON LAYOUT */
+        .floating-button-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column; /* Changed to 'column' to stack correctly */
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .floating-button {
+            background-color: #4f46e5; /* Indigo */
+            color: white;
+            border-radius: 9999px; /* Fully rounded */
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .floating-button:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+        }
+        .barcode-button {
+            background-color: #2563eb; /* A slightly different blue */
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        .barcode-button:hover {
+            background-color: #1d4ed8;
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000; /* High z-index to be on top */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh; /* Set a max height */
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+
+        /* NEW STYLES FOR THE SMALL, ROUNDED SCANNER MODAL */
+        .scanner-modal-content {
+            background-color: #fefefe;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .scanner-modal-close {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            font-size: 2rem;
+            line-height: 1;
+            color: #4b5563; /* Dark gray */
+            cursor: pointer;
+            z-index: 2001;
+        }
+        #interactive.viewport {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Set a fixed height for the viewport */
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+
+        #interactive.viewport video, #interactive.viewport canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            object-fit: cover;
+        }
+
+        /* Viewfinder frame */
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 60%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-sizing: border-box;
+            pointer-events: none; /* Ignore mouse events */
+        }
+
+        .scanner-frame.scanning-success {
+            border-color: #4CAF50; /* Green color for success feedback */
+            box-shadow: 0 0 10px 5px #4CAF50; /* Glow effect on success */
+            transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+        }
+
+
+        .close-button {
+            color: #aaa;
+            float: left; /* Changed to left for RTL */
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .category-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* To push arrow and plus to the end */
+        }
+        .category-header .category-title-wrapper {
+            display: flex;
+            align-items: center;
+            flex-grow: 1; /* Allow title to take space */
+        }
+        .category-header .category-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Space between icons */
+        }
+        .category-header svg.collapse-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+        .category-header.collapsed svg.collapse-arrow {
+            transform: rotate(-90deg); /* Rotate arrow when collapsed */
+        }
+        .done-items-separator {
+            border-top: 1px solid #e5e7eb; /* Lighter solid line */
+            margin-top: 1rem; /* Slightly less margin */
+            padding-top: 1rem; /* Slightly less padding */
+            text-align: center;
+            color: #9ca3af; /* Lighter gray text */
+            font-size: 0.9em; /* Slightly smaller font */
+        }
+        .add-to-category-btn {
+            background-color: transparent;
+            border: none;
+            color: #4f46e5; /* Indigo color for plus icon */
+            font-size: 1.5rem; /* Larger plus sign */
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 9999px; /* Make it circular */
+            transition: background-color 0.2s ease;
+        }
+        .add-to-category-btn:hover {
+            background-color: #e0e7ff; /* Light indigo background on hover */
+        }
+
+        /* Hamburger menu icon */
+        .hamburger-icon {
+            display: block; /* Show on mobile */
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem; /* Position on the right for RTL */
+            z-index: 3000; /* Above sidebar */
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media (min-width: 768px) {
+            .hamburger-icon {
+                display: none; /* Hide on desktop */
+            }
+        }
+
+        /* Barcode Action Modal Button Styles */
+        .barcode-action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1rem; /* Adjusted padding for compactness */
+            border-radius: 0.75rem; /* Slightly rounded corners */
+            font-size: 1rem; /* Default text size for the label below icon */
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            color: white; /* Default text color for stats and add buttons */
+        }
+        .barcode-action-button svg {
+            margin-bottom: 0.25rem; /* Small space between icon and text */
+        }
+        .barcode-action-button:active {
+            transform: scale(0.98); /* Slight press effect */
+        }
+
+        /* Specific colors for action buttons */
+        #barcodeStatsButton {
+            background-color: #2563eb; /* Blue */
+        }
+        #barcodeStatsButton:hover {
+            background-color: #1d4ed8;
+        }
+        #barcodeAddToListButton {
+            background-color: #4f46e5; /* Indigo */
+        }
+        #barcodeAddToListButton:hover {
+            background-color: #4338ca;
+        }
+        #closeBarcodeActionModal {
+            background-color: #d1d5db; /* Light gray */
+            color: #374151; /* Darker text for cancel */
+        }
+        #closeBarcodeActionModal:hover {
+            background-color: #9ca3af;
+        }
+
+        /* Responsive adjustments for category header and list items */
+        @media (max-width: 767px) {
+            .category-header {
+                font-size: 1.125rem; /* text-lg on mobile */
+                margin-top: 1rem;
+                margin-bottom: 0.75rem;
+                padding-bottom: 0.5rem;
+            }
+            .category-header .category-title-wrapper span {
+                font-size: 1.125rem; /* Ensure consistency */
+            }
+            .add-to-category-btn {
+                font-size: 1.25rem; /* Slightly smaller plus sign */
+                padding: 0.125rem;
+            }
+            .list-item-card { /* Class applied to listItem div */
+                padding: 0.75rem; /* p-3 on mobile */
+            }
+            .quantity-select-mobile { /* Class applied to quantitySelect */
+                width: 4rem; /* w-16 or a fixed smaller width */
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem; /* text-sm */
+            }
+            .delete-button-mobile { /* Class applied to deleteButton */
+                padding: 0.25rem;
+            }
+        }
+
+        /* Specific styles for product name to handle long text on mobile */
+        .product-name-span {
+            word-break: break-word; /* Break long words */
+            min-width: 0; /* Allow flex item to shrink */
+            /* max-width: 100%; /* Ensure it doesn't overflow its container */
+            flex-shrink: 1; /* Allow it to shrink */
+        }
+        .list-item-card .flex-grow {
+            flex-basis: 0; /* Allows flex-grow to work as expected */
+        }
+        .list-item-card .flex-shrink-0 {
+            flex-shrink: 0; /* Prevents shrinking of these elements */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Hamburger Menu Icon for Mobile -->
+<div id="hamburgerIcon" class="hamburger-icon">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</div>
+
+<!-- include Sidebar from sidebar.html -->
+{% include "sidebar.html" %}
+<!-- Main Content Area -->
+<div class="main-content">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">רשימת הקניות שלך</h1>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner"></div>
+
+        <!-- Shopping List Items -->
+        <div id="shoppingListContainer" class="space-y-6">
+            <!-- Categories and their items will be rendered here by JavaScript -->
+        </div>
+
+        <!-- Empty List Message -->
+        <div id="emptyListMessage" class="text-center text-gray-500 py-10 hidden">
+            <p class="text-xl">רשימת הקניות שלך ריקה!</p>
+            <p class="mt-2">לחץ על כפתור ה'+' כדי להוסיף את הפריט הראשון שלך.</p>
+        </div>
+
+        <!-- Total Items on List -->
+        <div id="totalItemsDisplay"
+             class="text-center text-gray-700 text-lg font-semibold mt-8 pt-4 border-t border-gray-300">
+            <!-- Total items will be displayed here -->
+        </div>
+    </div>
+
+    <!-- Floating Buttons Container -->
+    <div class="floating-button-container">
+        <!-- Floating Barcode Scanner Button -->
+        <div id="barcodeScannerButton" class="floating-button barcode-button">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.963a2 2 0 011.834 1.109l.487.974A2 2 0 0010.518 11H13.5a2 2 0 001.616-.889l.487-.974A2 2 0 0117.037 7H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2V9z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </div>
+        <!-- Floating Add Button -->
+        <div id="addFloatingButton" class="floating-button">
+            +
+        </div>
+    </div>
+
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModalButton">&times;</span>
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">הוסף פריט חדש</h2>
+            <div class="mb-4">
+                <label for="newProductName" class="block text-sm font-medium text-gray-700 mb-1">שם פריט</label>
+                <input type="text" id="newProductName" autofocus
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                       placeholder="לדוגמה: חלב, ביצים" list="productSuggestions">
+                <datalist id="productSuggestions"></datalist>
+            </div>
+            <div class="mb-4">
+                <label for="newProductQuantity" class="block text-sm font-medium text-gray-700 mb-1">כמות</label>
+                <input type="number" id="newProductQuantity"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                       value="1" min="1">
+            </div>
+            <div class="mb-6"> <!-- Added margin-bottom for spacing -->
+                <label for="newProductCategory" class="block text-sm font-medium text-gray-700 mb-1">קטגוריה</label>
+                <input type="text" id="newProductCategory"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                       list="categorySuggestions" required>
+                <datalist id="categorySuggestions">
+                    <!-- Categories will be dynamically loaded here by JavaScript -->
+                </datalist>
+            </div>
+            <button id="saveNewProductButton"
+                    class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
+                הוסף לרשימה
+            </button>
+        </div>
+    </div>
+
+    <!-- Barcode Scanner Modal -->
+    <div id="barcodeModal" class="modal">
+        <div class="scanner-modal-content">
+            <span class="scanner-modal-close" id="closeBarcodeModal">&times;</span>
+            <div id="interactive" class="viewport">
+                <video></video>
+                <div class="scanner-frame" id="scannerFrame"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barcode Action Modal (NEW) -->
+    <div id="barcodeActionModal" class="modal">
+        <div class="modal-content text-center">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-800">ברקוד נסרק!</h2>
+            <p class="text-lg mb-6">ברקוד: <span id="scannedBarcodeDisplay" class="font-bold text-indigo-600"></span>
+            </p>
+            <p class="text-md mb-6">מה תרצה לעשות עם ברקוד זה?</p>
+            <div class="flex flex-col space-y-4">
+                <button id="barcodeStatsButton" class="barcode-action-button bg-blue-600 hover:bg-blue-700">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="text-sm mt-1">סטטיסטיקה</span>
+                </button>
+                <button id="barcodeAddToListButton" class="barcode-action-button bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm mt-1">הוסף לרשימה</span>
+                </button>
+                <button id="closeBarcodeActionModal"
+                        class="barcode-action-button bg-gray-300 text-gray-800 hover:bg-gray-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                         xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span class="text-sm mt-1">ביטול</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const shoppingListContainer = document.getElementById('shoppingListContainer');
+        const emptyListMessage = document.getElementById('emptyListMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const addFloatingButton = document.getElementById('addFloatingButton');
+        const addProductModal = document.getElementById('addProductModal');
+        const closeModalButton = document.getElementById('closeModalButton');
+        const newProductNameInput = document.getElementById('newProductName');
+        const newProductQuantityInput = document.getElementById('newProductQuantity');
+        const newProductCategoryInput = document.getElementById('newProductCategory');
+        const saveNewProductButton = document.getElementById('saveNewProductButton');
+        const totalItemsDisplay = document.getElementById('totalItemsDisplay');
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        const productSuggestionsDatalist = document.getElementById('productSuggestions');
+        const categorySuggestionsDatalist = document.getElementById('categorySuggestions');
+
+        // Barcode scanner elements
+        const barcodeScannerButton = document.getElementById('barcodeScannerButton');
+        const barcodeModal = document.getElementById('barcodeModal');
+        const closeBarcodeModal = document.getElementById('closeBarcodeModal');
+        const scannerFrame = document.getElementById('scannerFrame');
+        const interactiveViewport = document.getElementById('interactive');
+
+        // NEW Barcode Action Modal elements
+        const barcodeActionModal = document.getElementById('barcodeActionModal');
+        const scannedBarcodeDisplay = document.getElementById('scannedBarcodeDisplay');
+        const barcodeStatsButton = document.getElementById('barcodeStatsButton');
+        const barcodeAddToListButton = document.getElementById('barcodeAddToListButton');
+        const closeBarcodeActionModal = document.getElementById('closeBarcodeActionModal');
+
+
+        // These will now be populated from the backend
+        let currentShoppingList = {}; // Stores items as returned by backend: { "id": {item_data} }
+        let currentCategories = {}; // Stores categories as returned by backend: { "category_name": "category_name" }
+
+        // Store collapsed categories state
+        const collapsedCategories = new Set();
+
+
+        // --- Utility Functions ---
+
+        function showLoading() {
+            loadingSpinner.style.display = 'block';
+            shoppingListContainer.innerHTML = ''; // Clear list while loading
+            emptyListMessage.classList.add('hidden');
+            totalItemsDisplay.classList.add('hidden');
+        }
+
+        function hideLoading() {
+            loadingSpinner.style.display = 'none';
+        }
+
+        function showEmptyMessage() {
+            emptyListMessage.classList.remove('hidden');
+            totalItemsDisplay.classList.add('hidden');
+        }
+
+        function hideEmptyMessage() {
+            emptyListMessage.classList.add('hidden');
+            totalItemsDisplay.classList.remove('hidden');
+        }
+
+        // Function to populate the category datalist
+        function populateCategoryDatalist() {
+            const categoriesArray = Object.keys(currentCategories).filter(c => c); // Filter out empty strings
+            categoriesArray.sort(); // Sort alphabetically
+
+            categorySuggestionsDatalist.innerHTML = ''; // Clear previous options
+            categoriesArray.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                categorySuggestionsDatalist.appendChild(option);
+            });
+        }
+
+        // Function to populate the product suggestions datalist
+        function populateProductSuggestions(suggestions) {
+            productSuggestionsDatalist.innerHTML = ''; // Clear previous options
+            if (suggestions && Array.isArray(suggestions)) {
+                suggestions.forEach(suggestion => {
+                    const option = document.createElement('option');
+                    option.value = suggestion;
+                    productSuggestionsDatalist.appendChild(option);
+                });
+            }
+        }
+
+
+        // Function to render the content of a specific category
+        function renderCategoryContent(category) {
+            const categoryContentDiv = document.querySelector(`.category-content[data-category-name="${category}"]`);
+            if (!categoryContentDiv) return;
+
+            categoryContentDiv.innerHTML = ''; // Clear existing content
+
+            // Filter items for the specific category from currentShoppingList
+            const categoryItems = Object.values(currentShoppingList).filter(item => {
+                return (item.category || 'כללי') === category;
+            });
+
+            const toDoItems = categoryItems.filter(item => !item.done);
+            const doneItems = categoryItems.filter(item => item.done);
+
+            // Update category header count (only for ToDo items)
+            const categoryHeaderSpan = document.querySelector(`.category-header[data-category-name="${category}"] .category-title-wrapper span`);
+            if (categoryHeaderSpan) {
+                categoryHeaderSpan.textContent = `${category} (${toDoItems.length})`;
+            }
+
+            // Render "To Do" items
+            if (toDoItems.length > 0) {
+                toDoItems.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+                    categoryContentDiv.appendChild(createListItem(item));
+                });
+            }
+
+            // Add separator and "Done Items" section if there are done items
+            if (toDoItems.length > 0 && doneItems.length > 0) { // Only add separator if there are also "to do" items
+                const separator = document.createElement('div');
+                separator.className = 'done-items-separator';
+                separator.textContent = '--- פריטים שבוצעו ---';
+                categoryContentDiv.appendChild(separator);
+            }
+            if (doneItems.length > 0) {
+                doneItems.sort((a, b) => a.name.localeCompare(b.name)).forEach(item => {
+                    categoryContentDiv.appendChild(createListItem(item));
+                });
+            }
+        }
+
+
+        // Function to render the shopping list, now grouped by category
+        function renderShoppingList() {
+            shoppingListContainer.innerHTML = ''; // Clear existing list
+            if (Object.keys(currentShoppingList).length === 0) {
+                showEmptyMessage();
+                return;
+            }
+            hideEmptyMessage();
+
+            // Group items by category
+            const categorizedItems = Object.values(currentShoppingList).reduce((acc, item) => {
+                const category = item.category || 'כללי'; // Default to 'כללי' if category is missing
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(item);
+                return acc;
+            }, {});
+
+            // Sort categories alphabetically, put 'כללי' last
+            const sortedCategories = Object.keys(categorizedItems).sort((a, b) => {
+                if (a === 'כללי') return 1;
+                if (b === 'כללי') return -1;
+                return a.localeCompare(b);
+            });
+
+            let totalItemsCount = 0;
+
+            // On initial render, collapse all categories by default
+            if (collapsedCategories.size === 0 && sortedCategories.length > 0) {
+                sortedCategories.forEach(category => collapsedCategories.add(category));
+            }
+
+
+            sortedCategories.forEach(category => {
+                const toDoItems = categorizedItems[category].filter(item => !item.done);
+                totalItemsCount += categorizedItems[category].length; // Count all items (done and not done)
+
+                // Create category header
+                const categoryHeaderDiv = document.createElement('div');
+                // Adjusted responsive classes for font size and padding
+                categoryHeaderDiv.className = 'category-header text-xl md:text-2xl font-semibold text-gray-700 mt-6 mb-3 border-b pb-2 border-gray-300';
+                categoryHeaderDiv.dataset.categoryName = category;
+                categoryHeaderDiv.innerHTML = `
+                    <div class="category-title-wrapper">
+                        <span>${category} (${toDoItems.length})</span>
+                    </div>
+                    <div class="category-actions">
+                        <button class="add-to-category-btn" data-category="${category}">+</button>
+                        <svg class="w-5 h-5 collapse-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                `;
+                shoppingListContainer.appendChild(categoryHeaderDiv);
+
+                // Create a div for items within this category (collapsible content)
+                const categoryContentDiv = document.createElement('div');
+                categoryContentDiv.className = 'category-content space-y-4';
+                categoryContentDiv.dataset.categoryName = category;
+                shoppingListContainer.appendChild(categoryContentDiv);
+
+                // Set initial collapse state
+                if (collapsedCategories.has(category)) { // Use persisted state
+                    categoryContentDiv.classList.add('hidden');
+                    categoryHeaderDiv.classList.add('collapsed');
+                } else {
+                    categoryContentDiv.classList.remove('hidden');
+                    categoryHeaderDiv.classList.remove('collapsed');
+                }
+
+                // Attach click listener to header for collapsing (excluding the plus button)
+                categoryHeaderDiv.querySelector('.category-title-wrapper').addEventListener('click', () => {
+                    const isHidden = categoryContentDiv.classList.toggle('hidden');
+                    categoryHeaderDiv.classList.toggle('collapsed');
+
+                    if (isHidden) {
+                        collapsedCategories.add(category);
+                    } else {
+                        collapsedCategories.delete(category);
+                        categoryHeaderDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+
+                // Attach click listener to the new "+" button
+                categoryHeaderDiv.querySelector('.add-to-category-btn').addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const targetCategory = event.currentTarget.dataset.category;
+                    addProductModal.style.display = 'flex';
+                    newProductNameInput.value = '';
+                    newProductQuantityInput.value = '1';
+                    populateCategoryDatalist();
+                    newProductCategoryInput.value = targetCategory;
+                });
+
+                // Render the content for this category
+                renderCategoryContent(category);
+            });
+
+            totalItemsDisplay.textContent = `סה"כ פריטים ברשימה: ${totalItemsCount}`;
+        }
+
+        // Function to create a single list item HTML element
+        function createListItem(item) {
+            const listItem = document.createElement('div');
+            // Added responsive class for padding
+            listItem.className = 'flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-200 list-item-card';
+            listItem.dataset.itemId = item.id; // Use item.id as the data attribute
+
+            // Checkbox and Product Name
+            const leftSection = document.createElement('div');
+            // Added flex-basis: 0 and flex-shrink: 1 to the parent of the name span
+            leftSection.className = 'flex items-center flex-grow flex-basis-0 flex-shrink-1';
+            leftSection.innerHTML = `
+                <input type="checkbox" class="form-checkbox h-5 w-5 text-indigo-600 rounded focus:ring-indigo-500 cursor-pointer" ${item.done ? 'checked' : ''}>
+                <span class="mr-3 text-lg font-medium text-gray-800 ${item.done ? 'line-through text-gray-400' : ''} product-name-span">${item.name}</span>
+            `;
+            listItem.appendChild(leftSection);
+
+            // Quantity Dropdown and Delete Button
+            const rightSection = document.createElement('div');
+            // Added flex-shrink-0 to prevent these from shrinking
+            rightSection.className = 'flex items-center space-x-4 flex-shrink-0';
+
+            const quantitySelect = document.createElement('select');
+            // Added responsive class for width and padding
+            quantitySelect.className = 'block w-20 md:w-24 px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm quantity-select-mobile';
+            for (let i = 1; i <= 10; i++) { // Max quantity 10 for example
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                if (i === item.quantity) {
+                    option.selected = true;
+                }
+                quantitySelect.appendChild(option);
+            }
+            rightSection.appendChild(quantitySelect);
+
+            const deleteButton = document.createElement('button');
+            // Added responsive class for padding
+            deleteButton.className = 'p-2 rounded-full text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200 delete-button-mobile';
+            // Trash icon (inline SVG)
+            deleteButton.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            `;
+            rightSection.appendChild(deleteButton);
+
+            listItem.appendChild(rightSection);
+
+            // Add event listeners for this item using item.id
+            leftSection.querySelector('input[type="checkbox"]').addEventListener('change', (e) => toggleItemDone(item.id, e.target.checked));
+            quantitySelect.addEventListener('change', (e) => updateItemQuantity(item.id, parseInt(e.target.value)));
+            deleteButton.addEventListener('click', () => deleteItem(item.id));
+
+            return listItem;
+        }
+
+        // --- API Interaction Functions (using fetch with your Flask routes) ---
+
+        async function fetchShoppingList() {
+            showLoading();
+            try {
+                const response = await fetch('/api/list');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                // The backend returns a dictionary where keys are item IDs.
+                // And categories are under a 'categories' key
+                currentShoppingList = {};
+                for (const key in data) {
+                    if (key !== 'categories' && key !== 'suggestions') {
+                        currentShoppingList[key] = data[key];
+                    }
+                }
+                currentCategories = data.categories || {};
+                const productSuggestions = data.suggestions || [];
+
+
+                populateCategoryDatalist();
+                populateProductSuggestions(productSuggestions);
+                hideLoading();
+                renderShoppingList();
+            } catch (error) {
+                console.error('Error fetching shopping list:', error);
+                shoppingListContainer.innerHTML = '<p class="text-center text-red-500">שגיאה בטעינת רשימת הקניות. אנא נסה שוב מאוחר יותר.</p>';
+                showMessage('שגיאה בטעינת רשימת הקניות. אנא נסה שוב מאוחר יותר.', 'error');
+                hideLoading();
+                showEmptyMessage(); // Show empty message or an error message
+            }
+        }
+
+        async function addItemToList(itemName, quantity, category, method = "manual", barcode = null) {
+            try {
+                const payload = { item: itemName, quantity: quantity, category: category, method: method };
+                if (barcode) {
+                    payload.barcode = barcode;
+                }
+
+                const response = await fetch('/api/list/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    await fetchShoppingList(); // Re-fetch the entire list to update all data
+                    showMessage(`פריט '${itemName}' נוסף בהצלחה!`, 'success');
+                } else {
+                    showMessage(`שגיאה בהוספת פריט: ${result.error || response.statusText}`, 'error');
+                    console.error("Failed to add item:", result.error);
+                }
+            } catch (error) {
+                console.error('Error adding item:', error);
+                showMessage('שגיאה בתקשורת עם השרת בעת הוספת פריט.', 'error');
+            }
+        }
+
+        async function deleteItem(itemID) {
+            try {
+                const response = await fetch('/api/list/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemID: itemID.toString() })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    await fetchShoppingList(); // Re-fetch the entire list to update all data
+                    showMessage('הפריט הוסר מהרשימה.', 'success');
+                } else {
+                    showMessage(`שגיאה בהסרת פריט: ${result.error || response.statusText}`, 'error');
+                    console.error("Failed to remove item:", result.error);
+                }
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showMessage('שגיאה בתקשורת עם השרת בעת הסרת פריט.', 'error');
+            }
+        }
+
+        async function updateItemQuantity(itemID, quantity) {
+            try {
+                const response = await fetch('/api/list/quantity', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemID: itemID.toString(), quantity: quantity })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    // Update the local item and re-render only the affected category
+                    currentShoppingList[itemID].quantity = quantity;
+                    renderCategoryContent(currentShoppingList[itemID].category || 'כללי');
+                    showMessage(`כמות הפריט עודכנה ל-${quantity}.`, 'success');
+                } else {
+                    showMessage(`שגיאה בעדכון כמות: ${result.error || response.statusText}`, 'error');
+                    console.error("Failed to update quantity:", result.error);
+                }
+            } catch (error) {
+                console.error('Error updating quantity:', error);
+                showMessage('שגיאה בתקשורת עם השרת בעת עדכון כמות.', 'error');
+            }
+        }
+
+        async function toggleItemDone(itemID, doneStatus) {
+            const endpoint = doneStatus ? '/api/list/done' : '/api/list/undone';
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ itemID: itemID.toString() })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    // Update the local item and re-render only the affected category
+                    currentShoppingList[itemID].done = doneStatus;
+                    renderCategoryContent(currentShoppingList[itemID].category || 'כללי');
+                    showMessage(`הפריט סומן כ${doneStatus ? 'בוצע' : 'לא בוצע'}.`, 'success');
+                } else {
+                    showMessage(`שגיאה בשינוי סטטוס פריט: ${result.error || response.statusText}`, 'error');
+                    console.error("Failed to toggle done status:", result.error);
+                }
+            } catch (error) {
+                console.error('Error toggling done status:', error);
+                showMessage('שגיאה בתקשורת עם השרת בעת שינוי סטטוס פריט.', 'error');
+            }
+        }
+
+        function showMessage(message, level) {
+            // Check if a message container already exists to prevent stacking
+            let existingMessage = document.getElementById('message-container');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            // Create the main container for the message box
+            const messageContainer = document.createElement('div');
+            messageContainer.id = 'message-container';
+            messageContainer.className = 'fixed bottom-4 left-4 z-50 transition-transform transform-gpu duration-500 ease-out -translate-x-full';
+
+            // Create the inner message box element
+            const messageBox = document.createElement('div');
+            messageBox.textContent = message;
+            messageBox.className = 'rounded-lg p-4 text-white shadow-lg text-right rtl max-w-sm';
+
+            // Set the background color based on the message level
+            switch (level) {
+                case 'success':
+                    messageBox.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    messageBox.classList.add('bg-red-500');
+                    break;
+                case 'info':
+                default:
+                    messageBox.classList.add('bg-blue-500');
+                    break;
+            }
+
+            // Append the message box to the container
+            messageContainer.appendChild(messageBox);
+
+            // Append the container to the body to display it
+            document.body.appendChild(messageContainer);
+
+            // Animate the message box sliding in
+            setTimeout(() => {
+                messageContainer.classList.remove('-translate-x-full');
+            }, 100); // A small delay to allow the element to be rendered before starting the transition
+
+            // Automatically remove the message box after 1 second
+            setTimeout(() => {
+                messageContainer.classList.add('-translate-x-full'); // Animate the message box sliding out
+                messageContainer.addEventListener('transitionend', () => {
+                    messageContainer.remove();
+                });
+            }, 2000); // 2 seconds to allow the user to read the message. Transition is 0.5s.
+        }
+           // --- Event Listeners ---
+
+        // Function to show the modal and focus the input
+        function showAddProductModal() {
+            addProductModal.style.display = 'flex';
+            newProductNameInput.value = '';
+            newProductQuantityInput.value = '1';
+            populateCategoryDatalist();
+            newProductNameInput.focus();
+            // Immediately scroll the input into view after showing the modal
+            newProductNameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        addFloatingButton.addEventListener('click', () => {
+            showAddProductModal();
+        });
+
+        // Listen for clicks on the input itself to open the modal
+        newProductNameInput.addEventListener('click', (event) => {
+            showAddProductModal();
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            addProductModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target === addProductModal) {
+                addProductModal.style.display = 'none';
+            }
+            // Close barcode action modal if clicked outside
+            if (event.target === barcodeActionModal) {
+                barcodeActionModal.style.display = 'none';
+            }
+        });
+
+        saveNewProductButton.addEventListener('click', () => {
+            const itemName = newProductNameInput.value.trim();
+            const quantity = parseInt(newProductQuantityInput.value);
+            const category = newProductCategoryInput.value;
+
+            if (itemName && quantity > 0) {
+                addItemToList(itemName, quantity, category);
+                addProductModal.style.display = 'none';
+            } else {
+                showMessage('אנא הזן שם פריט וכמות תקינה.', 'error');
+            }
+        });
+
+        hamburgerIcon.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // Barcode scanner event listeners
+        barcodeScannerButton.addEventListener('click', () => {
+            barcodeModal.style.display = 'flex';
+            // Wait for the modal to be visible before starting the scanner
+            setTimeout(() => {
+                startBarcodeScanner(interactiveViewport, scannerFrame, (barcode) => {
+                    // Callback function to handle the scanned barcode
+                    console.log("Barcode detected:", barcode);
+                    // Instead of just showing a message, open the action modal
+                    barcodeModal.style.display = 'none'; // Close scanner modal
+                    scannedBarcodeDisplay.textContent = barcode;
+                    barcodeActionModal.style.display = 'flex'; // Open action modal
+
+                    // Store the barcode temporarily for button actions
+                    barcodeActionModal.dataset.scannedBarcode = barcode;
+                });
+            }, 300);
+        });
+
+        closeBarcodeModal.addEventListener('click', () => {
+            stopBarcodeScanner();
+            barcodeModal.style.display = 'none';
+        });
+
+        // NEW: Barcode Action Modal event listeners
+        closeBarcodeActionModal.addEventListener('click', () => {
+            barcodeActionModal.style.display = 'none';
+            barcodeActionModal.dataset.scannedBarcode = ''; // Clear stored barcode
+        });
+
+        barcodeStatsButton.addEventListener('click', () => {
+            const barcode = barcodeActionModal.dataset.scannedBarcode;
+            if (barcode) {
+                window.location.href = `/stats/${barcode}`;
+            }
+            barcodeActionModal.style.display = 'none';
+            barcodeActionModal.dataset.scannedBarcode = '';
+        });
+
+        barcodeAddToListButton.addEventListener('click', async () => {
+            const barcode = barcodeActionModal.dataset.scannedBarcode;
+            if (barcode) {
+                // For "Add to list", we still need item name, quantity, category.
+                // For now, let's assume a default or prompt the user later.
+                // For this implementation, we will add a placeholder item name and quantity.
+                // In a real app, you'd likely fetch product info by barcode or prompt the user.
+                const itemName = barcode; // Placeholder name
+                const quantity = 1;
+                const category = 'כללי'; // Default category
+
+                await addItemToList(itemName, quantity, category, 'barcode', barcode);
+            }
+            barcodeActionModal.style.display = 'none';
+            barcodeActionModal.dataset.scannedBarcode = '';
+        });
+
+
+        // Initial fetch of shopping list
+        fetchShoppingList();
+    });
+</script>
+<script src="static/barcode_scanner.js"></script>
+</body>
+</html>

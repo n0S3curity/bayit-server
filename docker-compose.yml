@@ -1,0 +1,27 @@
+services:
+  web:
+    container_name: zenlist-backend
+    # Build the image from the Dockerfile in the current directory
+    build: .
+    # Map port 8126 on the host to port 5000 in the container
+    # This exposes the Flask app running on port 5000 to port 8126 on your machine
+    ports:
+      - "8126:5000"
+    # Mount the current directory into the container for live reloading during development
+    environment:
+      - FIREBASE_SERVICE_ACCOUNT_PATH=/app/serviceAccountKey.json
+    volumes:
+      - ../zenlist_databases:/app/databases  # Mount only the persistent data
+      - ../zenlist_receipts:/app/receipts  # Mount only the persistent data
+      - ../zenlist_original_receipts_backup:/app/original_receipts_backup  # Mount only the persistent data
+      - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro  # Firebase service account key (read-only)
+    # Specify the command to run the application.
+    # The CMD from the Dockerfile is used by default if this is not specified.
+    command: python app.py
+    restart: always
+    networks:
+      - zenlist-network
+
+networks:
+  zenlist-network:
+    driver: bridge

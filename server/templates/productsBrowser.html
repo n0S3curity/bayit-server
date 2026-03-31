@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מוצרים בסופר</title>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.44C4.9 17.13 6.13 18.25 7.5 18.25h11.17v-2H7.5c-.55 0-1-.45-1-1s.45-1 1-1h12.17c.55 0 1.05-.27 1.34-.71L23.5 6.47c.23-.45-.06-.97-.57-.97H6.95l-.9-1.87c-.36-.73-1.09-1.2-1.92-1.2H1V2zm14 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex; /* Use flexbox for overall layout */
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #1f2937; /* Dark gray for sidebar */
+            color: #d1d5db;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed; /* Fixed for mobile, then changed to relative for desktop */
+            top: 0;
+            right: -250px; /* Initially off-screen to the right for RTL */
+            height: 100%;
+            transition: right 0.3s ease-in-out; /* Smooth transition for sliding */
+            z-index: 2000; /* Ensure it's above other content */
+        }
+        .sidebar.open {
+            right: 0; /* Slide in */
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                position: relative; /* Back to normal flow on desktop */
+                right: 0; /* Always visible */
+                flex-shrink: 0; /* Don't shrink sidebar */
+            }
+        }
+
+        .main-content {
+            flex-grow: 1; /* Allow main content to take remaining space */
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 0; /* No margin on mobile */
+            transition: margin-right 0.3s ease-in-out; /* For pushing content on desktop */
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                margin-right: 250px; /* Adjust for sidebar width when open */
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Max width for content */
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners for the main card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        /* Hamburger menu icon */
+        .hamburger-icon {
+            display: block; /* Show on mobile */
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem; /* Position on the right for RTL */
+            z-index: 3000; /* Above sidebar */
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media (min-width: 768px) {
+            .hamburger-icon {
+                display: none; /* Hide on desktop */
+            }
+        }
+
+        .active-link {
+            background-color: #4f46e5;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .product-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .product-details {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Styles for Barcode Scanner Modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .scanner-modal-content {
+            background-color: #fefefe;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+        }
+        .scanner-modal-close {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            font-size: 2rem;
+            line-height: 1;
+            color: #4b5563; /* Dark gray */
+            cursor: pointer;
+            z-index: 2001;
+        }
+        #interactive.viewport {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Set a fixed height for the viewport */
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        #interactive.viewport video, #interactive.viewport canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            object-fit: cover;
+        }
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 60%;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            box-sizing: border-box;
+            pointer-events: none; /* Ignore mouse events */
+        }
+        .scanner-frame.scanning-success {
+            border-color: #4CAF50; /* Green color for success feedback */
+            box-shadow: 0 0 10px 5px #4CAF50; /* Glow effect on success */
+            transition: box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div id="hamburgerIcon" class="hamburger-icon">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</div>
+
+{% include "sidebar.html" %}
+
+<div class="main-content">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">מוצרים בסופר - מחירים עדכניים</h1>
+
+        <div class="mb-6 flex items-center space-x-2 rtl:space-x-reverse">
+            <div class="flex-grow">
+                <input type="text" id="searchInput" placeholder="חפש לפי שם או ברקוד..."
+                       class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-right"
+                       dir="rtl">
+            </div>
+            <button id="barcodeScannerBtn" title="סרוק ברקוד"
+                    class="p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors duration-200 flex-shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                     xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.865-1.442A2 2 0 0110.456 2h3.088a2 2 0 011.664.89l.865 1.442A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div id="loadingSpinner" class="loading-spinner"></div>
+
+        <div id="productsContainer" class="space-y-4">
+        </div>
+
+        <div id="emptyListMessage" class="text-center text-gray-500 py-10 hidden">
+            <p class="text-xl">לא נמצאו מוצרים תואמים.</p>
+            <p class="mt-2">נא נסה חיפוש אחר או הוסף מוצר חדש.</p>
+        </div>
+    </div>
+</div>
+
+<div id="barcodeModal" class="modal">
+    <div class="scanner-modal-content">
+        <span class="scanner-modal-close" id="closeBarcodeModal">&times;</span>
+        <div id="interactive" class="viewport">
+            <video></video>
+            <div class="scanner-frame" id="scannerFrame"></div>
+        </div>
+    </div>
+</div>
+
+<script src="static/productsbrowser.js"></script>
+<script src="static/barcode_scanner.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,895 @@
+{
+  "average_spend_per_receipt": 678.8386363636365,
+  "receipts": {
+    "0309250025139198": {
+      "date_and_time": "2025-09-03 18:43:45",
+      "total_price": 750.1
+    },
+    "0408250025124689": {
+      "date_and_time": "2025-08-04 18:33:49",
+      "total_price": 799.3
+    },
+    "0411250020137885": {
+      "date_and_time": "2025-11-04 13:24:33",
+      "total_price": 756.35
+    },
+    "0712250020076571": {
+      "date_and_time": "2025-12-07 17:17:22",
+      "total_price": 1111.03
+    },
+    "1007250025096927": {
+      "date_and_time": "2025-07-10 16:12:33",
+      "total_price": 833.77
+    },
+    "1109250020153489": {
+      "date_and_time": "2025-09-11 19:41:02",
+      "total_price": 604.7
+    },
+    "1210250020077127": {
+      "date_and_time": "2025-10-12 10:56:45",
+      "total_price": 577.67
+    },
+    "1308250020075977": {
+      "date_and_time": "2025-08-13 11:06:26",
+      "total_price": 129.0
+    },
+    "1709250025167932": {
+      "date_and_time": "2025-09-17 18:40:16",
+      "total_price": 975.14
+    },
+    "1711250020127781": {
+      "date_and_time": "2025-11-17 15:42:32",
+      "total_price": 777.43
+    },
+    "1910250020092876": {
+      "date_and_time": "2025-10-19 12:00:54",
+      "total_price": 348.02
+    },
+    "2008250020092688": {
+      "date_and_time": "2025-08-20 14:32:42",
+      "total_price": 764.99
+    },
+    "2307250025100141": {
+      "date_and_time": "2025-07-23 18:33:53",
+      "total_price": 938.94
+    },
+    "2509250020154310": {
+      "date_and_time": "2025-09-25 11:53:31",
+      "total_price": 439.81
+    },
+    "2511250020131284": {
+      "date_and_time": "2025-11-25 11:11:10",
+      "total_price": 690.42
+    },
+    "2710250016091005": {
+      "date_and_time": "2025-10-27 11:17:24",
+      "total_price": 696.54
+    },
+    "2808250025106099": {
+      "date_and_time": "2025-08-28 17:39:19",
+      "total_price": 529.96
+    },
+    "2907250020099080": {
+      "date_and_time": "2025-07-29 16:46:10",
+      "total_price": 700.21
+    }
+  },
+  "top_10_price_drop": [],
+  "top_10_price_increase": [
+    {
+      "barcode": "7613030979647",
+      "name": "\u05d3\u05d2\u05e0\u05d9 \u05d1\u05d5\u05e7\u05e8 \u05d8\u05e8\u05d9\u05e7\u05e1 480",
+      "new_price": 18.0,
+      "old_price": 9.9,
+      "price_increase": 81.81818181818181
+    },
+    {
+      "barcode": "9001808",
+      "name": "\u05e7\u05d9\u05e9\u05d5\u05d0",
+      "new_price": 6.9,
+      "old_price": 3.9,
+      "price_increase": 76.92307692307693
+    },
+    {
+      "barcode": "9005226",
+      "name": "\u05e4\u05d5\u05de\u05dc\u05d4",
+      "new_price": 6.9,
+      "old_price": 3.9,
+      "price_increase": 76.92307692307693
+    },
+    {
+      "barcode": "9000115",
+      "name": "\u05e2\u05d2\u05d1\u05e0\u05d9\u05d5\u05ea \u05e9\u05e8\u05d9",
+      "new_price": 22.9,
+      "old_price": 13.9,
+      "price_increase": 64.74820143884891
+    },
+    {
+      "barcode": "9001501",
+      "name": "\u05e4\u05dc\u05e4\u05dc \u05d0\u05d3\u05d5\u05dd",
+      "new_price": 7.9,
+      "old_price": 4.9,
+      "price_increase": 61.22448979591836
+    },
+    {
+      "barcode": "7290103705855",
+      "name": "\u05de\u05d2\u05d1\u05d5\u05ea \u05e0\u05d9\u05d9\u05e8 \u05e7\u05e9\u05ea 8 \u05d2\u05dc\u05d9",
+      "new_price": 23.9,
+      "old_price": 14.9,
+      "price_increase": 60.40268456375838
+    },
+    {
+      "barcode": "9000207",
+      "name": "\u05de\u05dc\u05e4\u05e4\u05d5\u05df",
+      "new_price": 5.9,
+      "old_price": 3.9,
+      "price_increase": 51.2820512820513
+    },
+    {
+      "barcode": "993294",
+      "name": "\u05e2\u05d2\u05d1\u05e0\u05d9\u05d5\u05ea \u05e9\u05e8\u05d9 \u05dc\u05d5\u05d1\u05dc\u05d5 \u05e6\u05d9",
+      "new_price": 11.9,
+      "old_price": 8.0,
+      "price_increase": 48.75000000000001
+    },
+    {
+      "barcode": "9008975",
+      "name": "\u05db\u05d5\u05e1\u05d1\u05e8\u05d4 \u05e2\u05e8\u05d5\u05d2\u05d5\u05ea \u05d4\u05de\u05e9\u05e7",
+      "new_price": 5.9,
+      "old_price": 4.0,
+      "price_increase": 47.50000000000001
+    },
+    {
+      "barcode": "7290011725556",
+      "name": "\u05d7\u05e1\u05d4 \u05dc\u05d0\u05dc\u05d9\u05e7 \u05d1\u05e8\u05db\u05ea \u05d3\u05d5\u05d3",
+      "new_price": 12.9,
+      "old_price": 9.0,
+      "price_increase": 43.333333333333336
+    }
+  ],
+  "top_10_product_purchased": [
+    {
+      "average_price": 1.875,
+      "barcode": "2111085",
+      "cheapest_price": 1.8,
+      "favorite": false,
+      "highest_price": 1.88,
+      "history": [
+        {
+          "date": "2025-07-23 18:33:53",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-07-23 18:33:53",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-03 18:43:45",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-09-03 18:43:45",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-11 19:41:02",
+          "price": 1.88,
+          "quantity": 8
+        },
+        {
+          "date": "2025-09-11 19:41:02",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-09-11 19:41:02",
+          "price": 1.8,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-27 11:17:24",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-10-27 11:17:24",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.84,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.88,
+          "quantity": 7
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 1.84,
+          "quantity": 1
+        }
+      ],
+      "last_price": 1.84,
+      "name": "\u05e8\u05d5\u05d8\u05d1 \u05e2\u05d2\u05d1\u05e0\u05d9\u05d5\u05ea \u05de\u05e8\u05d5\u05db\u05d6 \u05de",
+      "price": 1.88,
+      "price_increase": 4.444444444444437,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 150.0,
+      "total_quantity": 80
+    },
+    {
+      "average_price": 29.415,
+      "barcode": "201863",
+      "cheapest_price": 26.66,
+      "favorite": false,
+      "highest_price": 29.9,
+      "history": [
+        {
+          "date": "2025-07-10 16:12:33",
+          "price": 26.67,
+          "quantity": 2
+        },
+        {
+          "date": "2025-07-10 16:12:33",
+          "price": 26.66,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-04 18:33:49",
+          "price": 29.9,
+          "quantity": 3
+        },
+        {
+          "date": "2025-08-13 11:06:26",
+          "price": 29.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 29.9,
+          "quantity": 2
+        },
+        {
+          "date": "2025-08-28 17:39:19",
+          "price": 29.9,
+          "quantity": 3
+        },
+        {
+          "date": "2025-09-17 18:40:16",
+          "price": 29.9,
+          "quantity": 2
+        },
+        {
+          "date": "2025-10-12 10:56:45",
+          "price": 29.9,
+          "quantity": 3
+        },
+        {
+          "date": "2025-12-07 17:17:22",
+          "price": 29.9,
+          "quantity": 3
+        }
+      ],
+      "last_price": 29.9,
+      "name": "\u05d7\u05d9\u05ea\u05d5\u05dc\u05d9 \u05d8\u05d9\u05d8\u05d5\u05dc\u05d9\u05dd \u05e4\u05e8\u05d9\u05de\u05d9",
+      "price": 26.67,
+      "price_increase": 12.153038259564886,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 588.3,
+      "total_quantity": 20
+    },
+    {
+      "average_price": 5.0,
+      "barcode": "170077",
+      "cheapest_price": 5.0,
+      "favorite": false,
+      "highest_price": 5.0,
+      "history": [
+        {
+          "date": "2025-11-04 13:24:33",
+          "price": 5.0,
+          "quantity": 4
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.0,
+          "quantity": 2
+        }
+      ],
+      "last_price": 5.0,
+      "name": "\u05e9\u05d5\u05e7\u05d5\u05dc\u05d3 \u05e4\u05e8\u05d4 \u05de\u05e8\u05d9\u05e8 100",
+      "price": 5.0,
+      "price_increase": 0.0,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 100.0,
+      "total_quantity": 20
+    },
+    {
+      "average_price": 6.6000000000000005,
+      "barcode": "7290119377480",
+      "cheapest_price": 6.6,
+      "favorite": false,
+      "highest_price": 6.6,
+      "history": [
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 6.6,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 6.6,
+          "quantity": 4
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 6.6,
+          "quantity": 4
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 6.6,
+          "quantity": 4
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 6.6,
+          "quantity": 4
+        }
+      ],
+      "last_price": 6.6,
+      "name": "\u05d3\u05e0\u05d5\u05e0\u05d4 \u05e4\u05e8\u05d5 \u05e7\u05e8\u05d0\u05e0\u05e6' \u05d1\u05de\u05ea",
+      "price": 6.6,
+      "price_increase": 0.0,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 118.80000000000001,
+      "total_quantity": 18
+    },
+    {
+      "average_price": 8.405882352941177,
+      "barcode": "9000207",
+      "cheapest_price": 3.9,
+      "favorite": false,
+      "highest_price": 5.9,
+      "history": [
+        {
+          "date": "2025-07-29 16:46:10",
+          "price": 4.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-07-23 18:33:53",
+          "price": 3.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-04 18:33:49",
+          "price": 4.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-28 17:39:19",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-03 18:43:45",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-11 19:41:02",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-17 18:40:16",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-12 10:56:45",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-27 11:17:24",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-04 13:24:33",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-12-07 17:17:22",
+          "price": 5.9,
+          "quantity": 1
+        }
+      ],
+      "last_price": 5.9,
+      "name": "\u05de\u05dc\u05e4\u05e4\u05d5\u05df",
+      "price": 4.9,
+      "price_increase": 51.2820512820513,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 142.9,
+      "total_quantity": 17
+    },
+    {
+      "average_price": 10.088235294117647,
+      "barcode": "4130794",
+      "cheapest_price": 8.0,
+      "favorite": false,
+      "highest_price": 10.5,
+      "history": [
+        {
+          "date": "2025-07-29 16:46:10",
+          "price": 10.5,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-13 11:06:26",
+          "price": 8.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 10.5,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-28 17:39:19",
+          "price": 10.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-09-03 18:43:45",
+          "price": 10.0,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 10.5,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.5,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.5,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.5,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.5,
+          "quantity": 2
+        }
+      ],
+      "last_price": 10.5,
+      "name": "\u05de\u05e9\u05e7\u05d4 \u05e1\u05d5\u05d9\u05d4 \u05d1\u05de\u05ea\u05d9\u05e7\u05d5\u05ea \u05de\u05d5",
+      "price": 10.5,
+      "price_increase": 31.25,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 171.5,
+      "total_quantity": 17
+    },
+    {
+      "average_price": 4.0194117647058825,
+      "barcode": "9008968",
+      "cheapest_price": 4.0,
+      "favorite": false,
+      "highest_price": 4.33,
+      "history": [
+        {
+          "date": "2025-07-23 18:33:53",
+          "price": 4.33,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 4.0,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-25 11:53:31",
+          "price": 4.0,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-25 11:53:31",
+          "price": 4.0,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-12 10:56:45",
+          "price": 4.0,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 4.0,
+          "quantity": 3
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 4.0,
+          "quantity": 3
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 4.0,
+          "quantity": 3
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 4.0,
+          "quantity": 3
+        }
+      ],
+      "last_price": 4.0,
+      "name": "\u05e4\u05d8\u05e8\u05d5\u05d6\u05d9\u05dc\u05d9\u05d4 \u05e2\u05e8\u05d5\u05d2\u05d5\u05ea \u05d4\u05de\u05e9",
+      "price": 4.33,
+      "price_increase": 0.0,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 68.33,
+      "total_quantity": 17
+    },
+    {
+      "average_price": 17.361538461538466,
+      "barcode": "7290011499365",
+      "cheapest_price": 13.9,
+      "favorite": false,
+      "highest_price": 22.9,
+      "history": [
+        {
+          "date": "2025-07-29 16:46:10",
+          "price": 13.9,
+          "quantity": 3
+        },
+        {
+          "date": "2025-07-23 18:33:53",
+          "price": 13.9,
+          "quantity": 2
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 22.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 22.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 22.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 22.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 22.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-12-07 17:17:22",
+          "price": 13.9,
+          "quantity": 3
+        }
+      ],
+      "last_price": 13.9,
+      "name": "\u05d2\u05d1\u05d9\u05e0\u05d4 \u05d7\u05dc\u05d5\u05de\u05d9 24% \u05d2\u05d3 2",
+      "price": 13.9,
+      "price_increase": 64.74820143884891,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 225.70000000000005,
+      "total_quantity": 13
+    },
+    {
+      "average_price": 12.367500000000001,
+      "barcode": "9000122",
+      "cheapest_price": 5.9,
+      "favorite": false,
+      "highest_price": 6.9,
+      "history": [
+        {
+          "date": "2025-07-10 16:12:33",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-04 18:33:49",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-28 17:39:19",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-11 19:41:02",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-27 11:17:24",
+          "price": 6.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-04 13:24:33",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 5.9,
+          "quantity": 1
+        }
+      ],
+      "last_price": 5.9,
+      "name": "\u05e2\u05d2\u05d1\u05e0\u05d9\u05d4",
+      "price": 5.9,
+      "price_increase": 0.0,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 148.41000000000003,
+      "total_quantity": 12
+    },
+    {
+      "average_price": 8.659166666666666,
+      "barcode": "9007015",
+      "cheapest_price": 10.9,
+      "favorite": false,
+      "highest_price": 10.9,
+      "history": [
+        {
+          "date": "2025-08-04 18:33:49",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-08-20 14:32:42",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-03 18:43:45",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-25 11:53:31",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-09-25 11:53:31",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-10-12 10:56:45",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-04 13:24:33",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-17 15:42:32",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.9,
+          "quantity": 1
+        },
+        {
+          "date": "2025-11-25 11:11:10",
+          "price": 10.9,
+          "quantity": 1
+        }
+      ],
+      "last_price": 10.9,
+      "name": "\u05ea\u05e4\u05d5\u05d7 \u05e2\u05e5 \u05e1\u05de\u05d9\u05d8",
+      "price": 10.9,
+      "price_increase": 0.0,
+      "settings": {
+        "alias": "",
+        "default_category": ""
+      },
+      "total_price": 103.90999999999998,
+      "total_quantity": 12
+    }
+  ],
+  "total_items": 1238,
+  "total_receipts": 18,
+  "total_spent": 12423.379999999997
+}

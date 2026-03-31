@@ -1,0 +1,27 @@
+
+
+
+
+
+add:
+    1. add decreased prices support
+    2. a button to read all SMS and 1 by 1 send to scan
+
+
+
+
+3. on main, when registering the scraper, after pulling save only the liked branches from databases/general_settings - make sure to
+    uniform all param names and types. like StoreId
+
+4. implement /api/generalsettings/updatePrices
+5. implement barcodeAddToListButton.addEventListener In list.js
+6. implement /api/productsbrowser
+
+
+overall final:
+    1 - replace all prints with logger
+    2 - add print(traceback.print_exc()) to all exceptions
+    3 - add sleeps in needed
+
+
+

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>קבלות</title>
+    <!-- Tailwind CSS CDN -->
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234f46e5'><path d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.44C4.9 17.13 6.13 18.25 7.5 18.25h11.17v-2H7.5c-.55 0-1-.45-1-1s.45-1 1-1h12.17c.55 0 1.05-.27 1.34-.71L23.5 6.47c.23-.45-.06-.97-.57-.97H6.95l-.9-1.87c-.36-.73-1.09-1.2-1.92-1.2H1V2zm14 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex; /* Use flexbox for overall layout */
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+        /* Sidebar styling */
+        .sidebar {
+            width: 250px;
+            background-color: #1f2937; /* Dark gray for sidebar */
+            color: #d1d5db;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed; /* Fixed for mobile, then changed to relative for desktop */
+            top: 0;
+            right: -250px; /* Initially off-screen to the right for RTL */
+            height: 100%;
+            transition: right 0.3s ease-in-out; /* Smooth transition for sliding */
+            z-index: 2000; /* Ensure it's above other content */
+        }
+        .sidebar.open {
+            right: 0; /* Slide in */
+        }
+        @media (min-width: 768px) {
+            .sidebar {
+                position: relative; /* Back to normal flow on desktop */
+                right: 0; /* Always visible */
+                flex-shrink: 0; /* Don't shrink sidebar */
+            }
+        }
+
+        .main-content {
+            flex-grow: 1; /* Allow main content to take remaining space */
+            padding: 1rem; /* Adjust padding for mobile */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 0; /* No margin on mobile */
+            transition: margin-right 0.3s ease-in-out; /* For pushing content on desktop */
+        }
+        @media (min-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+                margin-right: 250px; /* Adjust for sidebar width when open */
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Max width for content */
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners for the main card */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1rem; /* Adjust padding for mobile */
+        }
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        .main-title {
+            font-size: 1.75rem; /* Smaller font on mobile */
+        }
+        @media (min-width: 768px) {
+            .main-title {
+                font-size: 3rem; /* Larger font on desktop */
+            }
+        }
+
+        /* Hamburger menu icon */
+        .hamburger-icon {
+            display: block; /* Show on mobile */
+            position: fixed;
+            top: 1rem; /* Adjust position for mobile */
+            right: 1rem; /* Position on the right for RTL */
+            z-index: 3000; /* Above sidebar */
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        @media (min-width: 768px) {
+            .hamburger-icon {
+                display: none; /* Hide on desktop */
+            }
+        }
+
+        .active-link {
+            background-color: #4f46e5;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .supermarket-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #d1d5db;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .supermarket-header .supermarket-title-wrapper {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .supermarket-header svg.collapse-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+        .supermarket-header.collapsed svg.collapse-arrow {
+            transform: rotate(-90deg); /* Rotate arrow when collapsed */
+        }
+        .branch-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            margin-right: 1.5rem;
+        }
+        .branch-header .branch-title-wrapper {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .branch-header svg.collapse-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+        .branch-header.collapsed svg.collapse-arrow {
+            transform: rotate(-90deg); /* Rotate arrow when collapsed */
+        }
+        .receipt-card {
+            display: flex;
+            flex-direction: column; /* Stack details and actions on mobile */
+            align-items: flex-start;
+            justify-content: space-between;
+            background-color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        @media (min-width: 640px) { /* Adjust for larger screens */
+            .receipt-card {
+                flex-direction: row; /* Row layout on larger screens */
+                align-items: center;
+            }
+        }
+        .receipt-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        @media (min-width: 640px) {
+            .receipt-details {
+                flex-direction: row;
+                align-items: center;
+                margin-bottom: 0;
+            }
+        }
+        .receipt-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+        @media (min-width: 640px) {
+            .receipt-actions {
+                margin-top: 0;
+                width: auto;
+            }
+        }
+
+        /* Floating Plus Button */
+        #addReceiptBtn {
+            position: fixed;
+            bottom: 1rem; /* Adjust position for mobile */
+            left: 1rem;
+            z-index: 1000;
+            background-color: #4f46e5;
+            color: white;
+            width: 50px; /* Adjust size for mobile */
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out;
+        }
+        #addReceiptBtn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Modal styling */
+        .modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in-out;
+            padding: 1rem; /* Add padding for mobile */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            padding: 1.5rem; /* Adjust padding for mobile */
+            border-radius: 1rem;
+            width: 100%; /* Full width on mobile */
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-in-out;
+        }
+        @media (min-width: 640px) {
+            .modal-content {
+                padding: 2rem;
+                width: 90%;
+            }
+        }
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .success-toast {
+            position: fixed;
+            bottom: 1rem; /* Adjust position for mobile */
+            right: 1rem;
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem; /* Adjust padding for mobile */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 5000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            transform: translateY(20px);
+        }
+        .success-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- Hamburger Menu Icon for Mobile -->
+<div id="hamburgerIcon" class="hamburger-icon">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+</div>
+
+<!-- Sidebar -->
+{% include "sidebar.html" %}
+
+<!-- Main Content Area -->
+<div class="main-content">
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center main-title">קבלות</h1>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner"></div>
+
+        <!-- Receipts List Container -->
+        <div id="receiptsContainer" class="space-y-6">
+            <!-- Receipts grouped by supermarket and branch will be rendered here by JavaScript -->
+        </div>
+
+        <!-- Empty List Message -->
+        <div id="emptyListMessage" class="text-center text-gray-500 py-10 hidden">
+            <p class="text-xl">לא נמצאו קבלות.</p>
+            <p class="mt-2">כדי להוסיף קבלה חדשה, יש לסרוק אותה.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Plus Button -->
+<button id="addReceiptBtn" title="הוסף קבלה חדשה">
+    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+    </svg>
+</button>
+
+<!-- Modal for Adding a Receipt -->
+<div id="addReceiptModal" class="modal hidden">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800 sm:text-2xl">הוספת קבלה חדשה</h2>
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+        </div>
+        <p class="text-gray-600 mb-4 text-sm sm:text-base">הדבק טקסט המכיל קישורים לקבלות, והמערכת תחלץ אותם עבורך.</p>
+        <textarea id="pasteArea"
+                  class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-right"
+                  rows="6" placeholder="הדבק טקסט כאן..."></textarea>
+        <div id="linksListContainer" class="mt-4">
+            <!-- Extracted links will be displayed here -->
+        </div>
+        <div id="extractingSpinner" class="loading-spinner hidden"></div>
+    </div>
+</div>
+
+<!-- Success Toast Notification -->
+<div id="successToast" class="success-toast">
+    <p id="successMessage"></p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const receiptsContainer = document.getElementById('receiptsContainer');
+        const emptyListMessage = document.getElementById('emptyListMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const sidebar = document.getElementById('sidebar');
+        const hamburgerIcon = document.getElementById('hamburgerIcon');
+        const addReceiptBtn = document.getElementById('addReceiptBtn');
+        const addReceiptModal = document.getElementById('addReceiptModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const pasteArea = document.getElementById('pasteArea');
+        const linksListContainer = document.getElementById('linksListContainer');
+        const successToast = document.getElementById('successToast');
+        const successMessage = document.getElementById('successMessage');
+        const extractingSpinner = document.getElementById('extractingSpinner');
+
+
+        // Store collapsed state for supermarkets and branches
+        const collapsedSupermarkets = new Set();
+        const collapsedBranches = new Set();
+
+        function showLoading(element) {
+            if (element) {
+                element.classList.remove('hidden');
+            }
+        }
+
+        function hideLoading(element) {
+            if (element) {
+                element.classList.add('hidden');
+            }
+        }
+
+        function showEmptyMessage() {
+            emptyListMessage.classList.remove('hidden');
+        }
+
+        function hideEmptyMessage() {
+            emptyListMessage.classList.add('hidden');
+        }
+
+        /**
+         * Groups receipts by supermarket and city (branch).
+         * @param {Array} receiptsList
+         * @returns {Object}
+         */
+        function groupReceipts(receiptsList) {
+            return receiptsList.reduce((acc, receipt) => {
+                const supermarket = receipt.company;
+                const branch = receipt.city;
+                if (!acc[supermarket]) {
+                    acc[supermarket] = {};
+                }
+                if (!acc[supermarket][branch]) {
+                    acc[supermarket][branch] = [];
+                }
+                acc[supermarket][branch].push(receipt);
+                return acc;
+            }, {});
+        }
+
+        /**
+         * Renders the receipt list from grouped data.
+         * @param {Object} groupedReceipts
+         */
+        function renderReceipts(groupedReceipts) {
+            receiptsContainer.innerHTML = ''; // Clear existing list
+
+            if (Object.keys(groupedReceipts).length === 0) {
+                showEmptyMessage();
+                return;
+            }
+            hideEmptyMessage();
+
+            const sortedSupermarkets = Object.keys(groupedReceipts).sort();
+            sortedSupermarkets.forEach(supermarket => {
+                const supermarketHeader = document.createElement('div');
+                supermarketHeader.className = `supermarket-header flex items-center justify-between font-semibold text-gray-800 transition-colors duration-200 rounded-lg p-4 mb-2 cursor-pointer ${collapsedSupermarkets.has(supermarket) ? 'collapsed' : ''}`;
+                supermarketHeader.innerHTML = `
+                    <div class="supermarket-title-wrapper flex items-center flex-grow text-xl">
+                        <span>${supermarket}</span>
+                    </div>
+                    <svg class="w-5 h-5 collapse-arrow text-gray-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                `;
+                supermarketHeader.onclick = () => toggleCollapse(supermarketHeader, supermarket, 'supermarket');
+                receiptsContainer.appendChild(supermarketHeader);
+
+                const supermarketContent = document.createElement('div');
+                supermarketContent.className = 'supermarket-content space-y-4 pr-4';
+                supermarketContent.style.display = collapsedSupermarkets.has(supermarket) ? 'none' : 'block';
+
+                const sortedBranches = Object.keys(groupedReceipts[supermarket]).sort();
+                sortedBranches.forEach(branch => {
+                    const branchHeader = document.createElement('div');
+                    branchHeader.className = `branch-header flex items-center justify-between font-medium text-gray-700 transition-colors duration-200 rounded-lg p-3 my-2 cursor-pointer ${collapsedBranches.has(`${supermarket}-${branch}`) ? 'collapsed' : ''}`;
+                    branchHeader.innerHTML = `
+                        <div class="branch-title-wrapper flex font-bold items-center text-red-600 flex-grow text-lg">
+                            <span>${branch}</span>
+                        </div>
+                        <svg class="w-5 h-5 collapse-arrow text-gray-600 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    `;
+                    branchHeader.onclick = () => toggleCollapse(branchHeader, `${supermarket}-${branch}`, 'branch');
+                    supermarketContent.appendChild(branchHeader);
+
+                    const branchContent = document.createElement('div');
+                    branchContent.className = 'branch-content space-y-3 pr-4';
+                    branchContent.style.display = collapsedBranches.has(`${supermarket}-${branch}`) ? 'none' : 'block';
+
+                    groupedReceipts[supermarket][branch].sort((a,b) => new Date(b.createdDate) - new Date(a.createdDate)).forEach(receipt => {
+                        const receiptCard = createReceiptCard(receipt);
+                        branchContent.appendChild(receiptCard);
+                    });
+                    supermarketContent.appendChild(branchContent);
+                });
+                receiptsContainer.appendChild(supermarketContent);
+            });
+        }
+
+        function toggleCollapse(header, key, type) {
+            const content = header.nextElementSibling;
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                header.classList.remove('collapsed');
+                if (type === 'supermarket') collapsedSupermarkets.delete(key);
+                if (type === 'branch') collapsedBranches.delete(key);
+            } else {
+                content.style.display = 'none';
+                header.classList.add('collapsed');
+                if (type === 'supermarket') collapsedSupermarkets.add(key);
+                if (type === 'branch') collapsedBranches.add(key);
+            }
+        }
+
+        /**
+         * Creates a single receipt card HTML element with original button icons and green price.
+         * @param {Object} receipt
+         * @returns {HTMLElement}
+         */
+        function createReceiptCard(receipt) {
+            const card = document.createElement('div');
+            card.className = 'receipt-card bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200';
+
+            // Format the date and time from the ISO string
+            const date = new Date(receipt.createdDate);
+            const formattedDate = date.toLocaleDateString('he-IL');
+            const formattedTime = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+
+            card.innerHTML = `
+                <div class="receipt-details flex-grow">
+                    <span class="font-medium text-gray-800 text-sm sm:text-base ml-4">${formattedDate} | ${formattedTime}</span>
+                    <span class="font-bold text-green-600 text-sm sm:text-base ml-4"> סך הכל: ${receipt.total.toFixed(2)} ₪</span>
+                    <span class="text-xs text-gray-500 sm:text-sm"> (#${receipt.file})</span>
+                </div>
+                <div class="receipt-actions space-x-2">
+                    <a href="/api/receipts/${receipt.file}/show" target="_blank" title="הצג קבלה" class="show-btn inline-block bg-indigo-500 text-white p-2 text-sm rounded-md hover:bg-indigo-600 transition-colors duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </a>
+                    <a href="/api/receipts/${receipt.file}/download" download title="הורד קבלה" class="download-btn inline-block bg-green-500 text-white p-2 text-sm rounded-md hover:bg-green-600 transition-colors duration-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                    </a>
+                </div>
+            `;
+            return card;
+        }
+
+        // --- API Interaction Functions ---
+
+        async function fetchReceipts() {
+            showLoading(loadingSpinner);
+            try {
+                const response = await fetch('/api/receipts');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const receipts = await response.json();
+
+                // Group the data by supermarket and city
+                const groupedData = groupReceipts(receipts);
+
+                hideLoading(loadingSpinner);
+                renderReceipts(groupedData);
+
+            } catch (error) {
+                console.error('Error fetching receipts:', error);
+                hideLoading(loadingSpinner);
+                showEmptyMessage();
+                showToast('שגיאה בטעינת הקבלות. נסה שוב מאוחר יותר.', 'error');
+            }
+        }
+
+        async function fetchReceipt(url) {
+            showLoading(extractingSpinner);
+            try {
+                const response = await fetch('/api/fetchReceipt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const result = await response.json();
+                hideLoading(extractingSpinner);
+                if (response.ok) {
+                    showToast('הקבלה נוספה בהצלחה!', 'success');
+                    fetchReceipts(); // Re-fetch the list to show the new receipt
+                } else {
+                    showToast(`שגיאה בהוספת קבלה: ${result.error || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching receipt from URL:', error);
+                hideLoading(extractingSpinner);
+                showToast('שגיאה בתקשורת עם השרת בעת הוספת קבלה.', 'error');
+            }
+        }
+
+        function extractLinks(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.match(urlRegex) || [];
+        }
+
+        function renderLinks(links) {
+            linksListContainer.innerHTML = '';
+            if (links.length === 0) {
+                linksListContainer.innerHTML = '<p class="text-gray-500">לא נמצאו קישורים.</p>';
+                return;
+            }
+            links.forEach(url => {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'flex items-center justify-between p-3 my-2 border rounded-lg bg-gray-50 text-sm';
+                linkItem.innerHTML = `
+                    <span class="truncate text-gray-700">${url}</span>
+                    <button class="choose-btn bg-indigo-500 text-white px-3 py-1 rounded-md hover:bg-indigo-600 transition-colors duration-200 mr-2" data-url="${url}">
+                        בחר
+                    </button>
+                `;
+                linksListContainer.appendChild(linkItem);
+            });
+        }
+
+        function showToast(message, type) {
+            successMessage.textContent = message;
+            successToast.className = 'success-toast show'; // Reset class to trigger transition
+            if (type === 'error') {
+                successToast.style.backgroundColor = '#ef4444'; // Red for error
+            } else {
+                successToast.style.backgroundColor = '#10b981'; // Green for success
+            }
+            setTimeout(() => {
+                successToast.classList.remove('show');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Event Listeners ---
+        hamburgerIcon.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        addReceiptBtn.addEventListener('click', () => {
+            addReceiptModal.classList.remove('hidden');
+            pasteArea.value = ''; // Clear text area on open
+            linksListContainer.innerHTML = ''; // Clear links list
+        });
+
+        closeModalBtn.addEventListener('click', () => {
+            addReceiptModal.classList.add('hidden');
+        });
+
+        // Close modal if user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === addReceiptModal) {
+                addReceiptModal.classList.add('hidden');
+            }
+        });
+
+        pasteArea.addEventListener('input', (event) => {
+            const text = event.target.value;
+            const links = extractLinks(text);
+            renderLinks(links);
+        });
+
+        linksListContainer.addEventListener('click', (event) => {
+            if (event.target.classList.contains('choose-btn')) {
+                const url = event.target.dataset.url;
+                if (url) {
+                    addReceiptModal.classList.add('hidden'); // Close modal
+                    fetchReceipt(url); // Call the API
+                }
+            }
+        });
+
+        // Initial fetch of receipts
+        fetchReceipts();
+    });
+</script>
+</body>
+</html>
