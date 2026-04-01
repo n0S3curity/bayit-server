@@ -33,6 +33,7 @@ from models.meta_mongo import (
 )
 from models.products_mongo import (
     get_products_dict,
+    get_products_paged,
     get_product,
     set_favorite,
 )
@@ -544,7 +545,10 @@ def sync_receipt():
 @require_auth
 @require_list
 def get_products():
-    return jsonify(get_products_dict(g.list_id))
+    offset = safe_int(request.args.get('offset', 0), default=0)
+    limit  = min(safe_int(request.args.get('limit', 30), default=30), 100)
+    query  = safe_str(request.args.get('q', ''))
+    return jsonify(get_products_paged(g.list_id, offset, limit, query))
 
 
 @api_bp.route('/productsbrowser', methods=['GET'])

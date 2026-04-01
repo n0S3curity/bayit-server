@@ -18,6 +18,7 @@ from bson import ObjectId
 
 from db import get_collection
 import models.user_model as user_model
+from models.meta_mongo import seed_default_categories
 
 COLLECTION = 'lists'
 
@@ -59,6 +60,9 @@ def create_list(name: str, owner_uid: str) -> dict:
     user_model.add_owned_list(owner_uid, list_id)
     user_model.set_active_list(owner_uid, list_id)
     user_model.set_status(owner_uid, user_model.STATUS_ACTIVE)
+
+    # Seed default categories for the new list
+    seed_default_categories(list_id)
 
     return doc
 

@@ -38,6 +38,28 @@ def get_products_dict(list_id) -> dict:
     return {d['barcode']: d for d in docs}
 
 
+def get_products_paged(list_id, offset: int = 0, limit: int = 30, query: str = '') -> dict:
+    """
+    Return a page of products sorted by total_quantity descending.
+    If query is given, filters by name or barcode (case-insensitive regex).
+    Returns { items: [...], total: int, offset: int, limit: int }.
+    """
+    filter_q: dict = {'listId': list_id}
+    if query:
+        regex = {'$regex': query, '$options': 'i'}
+        filter_q['$or'] = [{'name': regex}, {'barcode': regex}]
+
+    col = _col()
+    total = col.count_documents(filter_q)
+    docs  = list(
+        col.find(filter_q, {'_id': 0, 'listId': 0})
+           .sort('total_quantity', -1)
+           .skip(offset)
+           .limit(limit)
+    )
+    return {'items': docs, 'total': total, 'offset': offset, 'limit': limit}
+
+
 def get_product(list_id, barcode: str) -> dict | None:
     """Fetch a single product, stripping Mongo internals."""
     doc = _col().find_one(
