@@ -1,12 +1,13 @@
 services:
   web:
-    container_name: zenlist-backend
+    container_name: bayit-backend
     build: .
     ports:
-      - "8126:5000"
+      - "8129:5000"
     environment:
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/serviceAccountKey.json
-      - MONGODB_URI=mongodb://mongo:27017
+      # שים לב: הכתובת היא שם הקונטיינר של המונגו שהרמת (bayit-mongo)
+      - MONGODB_URI=mongodb://n0security:n0securitymongodb@bayit-mongo:27017/bayit?authSource=admin
       - MONGODB_DB=bayit
     volumes:
       - ../zenlist_databases:/app/databases
@@ -15,31 +16,9 @@ services:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     command: python app.py
     restart: always
-    depends_on:
-      mongo:
-        condition: service_healthy
     networks:
-      - zenlist-network
-
-  mongo:
-    image: mongo:7
-    container_name: bayit-mongo
-    restart: always
-    ports:
-      - "27017:27017"   # expose to host for local development / Compass
-    volumes:
-      - mongo_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - zenlist-network
-
-volumes:
-  mongo_data:
+      - bayit-network
 
 networks:
   zenlist-network:
-    driver: bridge
+    external: true  # זה אומר ל-Compose: הרשת כבר קיימת, אל תיצור חדשה
