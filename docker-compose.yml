@@ -7,7 +7,7 @@ services:
     environment:
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/serviceAccountKey.json
       # שים לב: הכתובת היא שם הקונטיינר של המונגו שהרמת (bayit-mongo)
-      - MONGODB_URI=mongodb://n0security:n0securitymongodb@bayit-mongo:27017/bayit?authSource=admin
+      - MONGODB_URI=mongodb://rootn0security:rootn0securitymongodb@bayit-mongo:27017/bayit?authSource=admin
       - MONGODB_DB=bayit
     volumes:
       - ../zenlist_databases:/app/databases
