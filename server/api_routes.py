@@ -439,15 +439,11 @@ def fetch_receipt():
 @require_list
 def sync_receipt():
     """
-    SMS-sync variant of fetchReceipt.
+    SMS-sync endpoint — supports Pairzon (Osher Ad) and wee.ai (Yochananof) URLs.
 
-    Differences from /fetchReceipt:
-    - Duplicate link → HTTP 200 {"status": "duplicate"} (not 400)
-      so the client can treat it as a no-op without error handling.
-    - PDF backup failure is non-fatal (logged, process continues).
-    - Simpler response body — only status and saved_filename.
-
-    Body: { "url": "<pairzon URL extracted from OSHERAD SMS>" }
+    - Duplicate link → HTTP 200 {"status": "duplicate"} (non-error, client skips silently)
+    - PDF/backup failure is non-fatal
+    - Body: { "url": "<receipt URL from SMS>" }
     """
     list_id = g.list_id
     data    = request.get_json()
@@ -455,69 +451,142 @@ def sync_receipt():
     if not raw_url:
         return jsonify({"error": "URL is required."}), 400
 
-    # ── Duplicate prevention (return success so client skips silently) ─────
+    # ── Duplicate prevention ──────────────────────────────────────────────────
     if receipt_link_exists(list_id, raw_url):
         return jsonify({"status": "duplicate"}), 200
 
     try:
-        # Step 1: Follow redirect
-        redirect_response = requests.get(raw_url, allow_redirects=True, timeout=15)
-        final_url         = redirect_response.url
+        import json as _json
 
-        # Step 2: Extract doc params
-        parsed_url   = urlparse(final_url)
-        query_params = parse_qs(parsed_url.query)
-        doc_id  = query_params.get('id', [''])[0]
-        p_param = query_params.get('p', [''])[0]
+        # ── Branch: wee.ai (Yochananof) ───────────────────────────────────────
+        if 'wee.ai' in raw_url:
+            # Step 1: follow the redirect to extract the receipt UUID (q param)
+            print(f"[wee.ai] fetching redirect for: {raw_url}")
+            redirect_resp  = requests.get(raw_url, allow_redirects=True, timeout=15)
+            redirected_url = redirect_resp.url
+            print(f"[wee.ai] redirected to: {redirected_url}")
 
-        if not doc_id:
-            return jsonify({"error": "Could not extract document ID from redirected URL."}), 400
+            redirect_qs  = parse_qs(urlparse(redirected_url).query)
+            receipt_uuid = redirect_qs.get('q', [''])[0]
+            print(f"[wee.ai] receipt_uuid: {receipt_uuid!r}")
 
-        base_domain   = f"{parsed_url.scheme}://{parsed_url.netloc}"
-        converted_url = f"{base_domain}/v1.0/documents/{doc_id}"
-        if p_param:
-            converted_url += f"?p={p_param}"
+            if not receipt_uuid:
+                print(f"[wee.ai] ERROR: no q param in redirect URL: {redirected_url}")
+                return jsonify({"error": f"Could not extract receipt UUID from wee.ai redirect. Final URL: {redirected_url}"}), 400
 
-        # Step 3: Fetch receipt JSON
-        response = requests.get(converted_url, timeout=15)
-        if response.status_code != 200:
-            return jsonify({"error": f"Failed to fetch receipt (HTTP {response.status_code})"}), 502
+            # Step 2: fetch real receipt JSON using the UUID
+            api_url  = f"https://wee.ai/api/receipts/{receipt_uuid}"
+            print(f"[wee.ai] fetching receipt API: {api_url}")
+            wee_resp = requests.get(api_url, timeout=15)
+            print(f"[wee.ai] API status: {wee_resp.status_code}")
+            if wee_resp.status_code != 200:
+                print(f"[wee.ai] API body: {wee_resp.text[:500]}")
+                return jsonify({"error": f"Failed to fetch wee.ai receipt (HTTP {wee_resp.status_code})"}), 502
 
-        receipt_json = response.json()
+            wee_list = wee_resp.json()
+            if not wee_list:
+                return jsonify({"error": "Empty response from wee.ai"}), 502
 
-        company_name = "osherad" if 'osher' in final_url else ("yohananof" if 'yohananof' in final_url else "")
+            w = wee_list[0]
+            print(f"[wee.ai] receipt id={w.get('id')} total={w.get('total')} createdDate={w.get('createdDate')} items={len(w.get('items', []))}")
 
-        try:
-            filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
-        except (KeyError, TypeError):
-            return jsonify({"error": "Could not parse additionalInfo from receipt."}), 500
+            # Step 3: save raw JSON backup — non-fatal
+            try:
+                backup_id   = str(w.get('id', receipt_uuid))
+                backup_path = f"../original_receipts_backup/yochananof_{backup_id}.json"
+                os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+                with open(backup_path, 'w', encoding='utf-8') as f:
+                    _json.dump(w, f, ensure_ascii=False, indent=2)
+                print(f"[wee.ai] JSON backup saved: {backup_path}")
+            except Exception as backup_err:
+                print(f"[wee.ai] JSON backup failed (non-fatal): {backup_err}")
 
-        city_english = "Unknown City"
-        try:
-            city_hebrew = receipt_json['store']['name']
-            import json as _json
-            with open('../databases/cities.json', 'r', encoding='utf-8') as f:
-                city_map = _json.load(f)
-            city_english = city_map.get(city_hebrew, "Unknown City")
-        except Exception:
-            pass  # non-fatal — city stays "Unknown City"
+            # Normalise to the same structure that process_receipt_mongo expects.
+            # Items: wee.ai uses itemCode (not code); total is the line total.
+            receipt_json = {
+                'createdDate':   (w.get('createdDate') or ''),
+                'total':         w.get('total', 0.0),
+                'barcode':       w.get('barcode') or w.get('transactionNumber', receipt_uuid),
+                'numberOfItems': len(w.get('items', [])),
+                'items': [
+                    {
+                        'code':     item.get('itemCode', ''),
+                        'name':     item.get('name', ''),
+                        'price':    item.get('price', 0),
+                        'quantity': item.get('quantity', 1),
+                        'total':    item.get('total') or (item.get('price', 0) * item.get('quantity', 1)),
+                    }
+                    for item in w.get('items', [])
+                ],
+            }
 
-        # Step 4: PDF backup — non-fatal
-        try:
-            pdf_url  = f"https://pdf.pairzon.com/pdf/{doc_id}/{p_param}"
-            pdf_resp = requests.get(pdf_url, timeout=15)
-            if pdf_resp.status_code == 200:
-                save_path = f"../original_receipts_backup/{filename_value}.pdf"
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                with open(save_path, 'wb') as f:
-                    f.write(pdf_resp.content)
-        except Exception as pdf_err:
-            print(f"sync_receipt: PDF backup failed (non-fatal): {pdf_err}")
+            company_name   = "yohananof"
+            filename_value = str(w.get('id', receipt_uuid))
 
-        # Step 5: Save to MongoDB + process products/stats
-        created_date = receipt_json.get('createdDate', '').replace("T", " ")
-        total        = receipt_json.get('total', 0.0)
+            # tBranch.branchName is already in Hebrew — store it directly.
+            # get_hebrew_city_name() returns unknown values as-is, so display works.
+            city_english = (w.get('tBranch') or {}).get('branchName') or 'Unknown City'
 
+            created_date = receipt_json['createdDate'].replace("T", " ")
+            total        = float(receipt_json.get('total', 0.0))
+            print(f"[wee.ai] parsed — city={city_english!r} created={created_date!r} total={total}")
+
+        # ── Branch: Pairzon (Osher Ad) ────────────────────────────────────────
+        else:
+            redirect_response = requests.get(raw_url, allow_redirects=True, timeout=15)
+            final_url         = redirect_response.url
+
+            parsed_url   = urlparse(final_url)
+            query_params = parse_qs(parsed_url.query)
+            doc_id  = query_params.get('id', [''])[0]
+            p_param = query_params.get('p', [''])[0]
+
+            if not doc_id:
+                return jsonify({"error": "Could not extract document ID from redirected URL."}), 400
+
+            base_domain   = f"{parsed_url.scheme}://{parsed_url.netloc}"
+            converted_url = f"{base_domain}/v1.0/documents/{doc_id}"
+            if p_param:
+                converted_url += f"?p={p_param}"
+
+            response = requests.get(converted_url, timeout=15)
+            if response.status_code != 200:
+                return jsonify({"error": f"Failed to fetch receipt (HTTP {response.status_code})"}), 502
+
+            receipt_json = response.json()
+
+            company_name = "osherad" if 'osher' in final_url else ("yohananof" if 'yohananof' in final_url else "")
+
+            try:
+                filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
+            except (KeyError, TypeError):
+                return jsonify({"error": "Could not parse additionalInfo from receipt."}), 500
+
+            city_english = "Unknown City"
+            try:
+                city_hebrew = receipt_json['store']['name']
+                with open('../databases/cities.json', 'r', encoding='utf-8') as f:
+                    city_map = _json.load(f)
+                city_english = city_map.get(city_hebrew, "Unknown City")
+            except Exception:
+                pass
+
+            # PDF backup — non-fatal
+            try:
+                pdf_url  = f"https://pdf.pairzon.com/pdf/{doc_id}/{p_param}"
+                pdf_resp = requests.get(pdf_url, timeout=15)
+                if pdf_resp.status_code == 200:
+                    save_path = f"../original_receipts_backup/{filename_value}.pdf"
+                    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                    with open(save_path, 'wb') as f:
+                        f.write(pdf_resp.content)
+            except Exception as pdf_err:
+                print(f"sync_receipt: PDF backup failed (non-fatal): {pdf_err}")
+
+            created_date = receipt_json.get('createdDate', '').replace("T", " ")
+            total        = receipt_json.get('total', 0.0)
+
+        # ── Common: persist ───────────────────────────────────────────────────
         save_receipt(
             list_id       = list_id,
             original_link = raw_url,
@@ -532,11 +601,15 @@ def sync_receipt():
         return jsonify({"status": "processed", "saved_filename": filename_value}), 200
 
     except requests.exceptions.Timeout:
+        print(f"[sync_receipt] Timeout for URL: {raw_url}")
         return jsonify({"error": "Request timed out."}), 504
     except requests.exceptions.RequestException as e:
+        print(f"[sync_receipt] Network error for URL: {raw_url} — {e}")
         return jsonify({"error": f"Network error: {str(e)}"}), 500
     except Exception as e:
-        return jsonify({"error": f"Unexpected error: {str(e)}", "stacktrace": traceback.format_exc()}), 500
+        tb = traceback.format_exc()
+        print(f"[sync_receipt] Unexpected error for URL: {raw_url}\n{tb}")
+        return jsonify({"error": f"Unexpected error: {str(e)}", "stacktrace": tb}), 500
 
 
 # ── Products ──────────────────────────────────────────────────────────────────

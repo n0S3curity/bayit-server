@@ -1,0 +1,285 @@
+{
+  "userDetails": null,
+  "id": "99c5a85d-7527-43bc-b432-2e697d4b03e1",
+  "originalText": "",
+  "total": 171.03,
+  "totalNoVat": 146.15,
+  "vatTotal": 24.88,
+  "vat": 18,
+  "currency": null,
+  "discount": null,
+  "barcode": "2810250012493648",
+  "transactionNumber": "3648",
+  "paymentType": "Unknown",
+  "receiptType": "Purchase",
+  "uploadedDate": "2025-10-28T16:02:44.2346519Z",
+  "createdDate": "2025-10-28T18:02:41",
+  "action": "Send",
+  "target": null,
+  "additionalTargets": [],
+  "posId": null,
+  "businessID": "048924d9-4eb1-47eb-8210-07e614beca6f",
+  "branchID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+  "posInternalId": null,
+  "isFavorite": false,
+  "extraDiscreteField1": null,
+  "extraDiscreteField2": null,
+  "extraTextField1": null,
+  "extraTextField2": null,
+  "loyaltyID": "1126128",
+  "loyalName": null,
+  "cashierName": "90",
+  "items": [
+    {
+      "id": "ae1d930f-ed44-495d-9b9e-fdf6fc545bb9",
+      "name": "גרון הודו טרי  פרימי",
+      "discount": null,
+      "position": null,
+      "itemCode": "401041",
+      "price": 33.9,
+      "quantity": 1.242,
+      "discountCalc": 0,
+      "total": 42.1,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.34"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "cc6279a2-c540-41ab-8ca8-4f1b20417e82",
+      "name": "מארז קפה טורקי יוחננ",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290014704602",
+      "price": 17.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 17.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "מארז קפה טורקי יוחננוף                                                          ",
+          "value": "-3.00"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "15b25a27-bd58-491d-a183-aa7c873dd7a1",
+      "name": "עוף טרי שלם",
+      "discount": null,
+      "position": null,
+      "itemCode": "400013",
+      "price": 19.9,
+      "quantity": 1.868,
+      "discountCalc": 0,
+      "total": 37.17,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.2"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "233093fd-56e3-43fa-ab97-e1af347d968c",
+      "name": "קמח פיצה מנופה 1 ק\"ג",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290016144109",
+      "price": 14.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 14.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "קמח פיצה מנופה 1 ק ג                                                            ",
+          "value": "-4.90"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "876d5e68-036f-41d0-8886-477da45f6757",
+      "name": "קמח פיצה מנופה 1 ק\"ג",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290016144109",
+      "price": 14.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 14.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "קמח פיצה מנופה 1 ק ג                                                            ",
+          "value": "-4.90"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "84130f26-32f2-46d8-b43a-cd0a2b784bf6",
+      "name": "כדורי מוצרלה  22%",
+      "discount": null,
+      "position": null,
+      "itemCode": "912349",
+      "price": 76,
+      "quantity": 0.65,
+      "discountCalc": 0,
+      "total": 49.4,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "8e796485-d862-4bbf-b724-805f8563438e",
+      "name": "בזיליקום 180 גרם",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290018024539",
+      "price": 7.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 7.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "ad913e4e-7d53-41cb-beb4-170991037615",
+      "name": "שקית גופיה יוחננוף",
+      "discount": null,
+      "position": null,
+      "itemCode": "6550",
+      "price": 0.1,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 0.1,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    }
+  ],
+  "flatItems": [],
+  "additionalData": [
+    {
+      "key": "לקוח/ה יקר/ה, בקניה זו חסכת 12.80 שח",
+      "value": ""
+    },
+    {
+      "key": "creditCardTicket",
+      "value": "יוחננוף רמלה -\nמס. כספיט: 6316476\nתוכנה: CST002251T\nמספר עסק: 6783906\n18:00  28/10/25\nיורוקרד מסטרקרד\n55556199XXXX0168\nמס\" שובר: 59049021\nעסקה: חובה\n2551879 חברה\nביצוע: EMV Contactless\nאשראי: רגיל\nסכום עיסקה:\n171.03\nמטבע: ש\"ח\nUID:25102818005263164760495\nRRN:530118551879\nATC:0100,CSN:00\nTVR:0020008001\nAID:A0000000041010\nDevice By Verified\n*** עותק ללקוח ***\nתודה ולהתראות!\n\n"
+    }
+  ],
+  "payments": [
+    {
+      "id": "e5484707-5e80-4787-ae78-a53ef28e9d63",
+      "name": "ישראכרט מגנטי",
+      "paymentCode": null,
+      "amount": 171.03,
+      "paymentInfo": null,
+      "lastDigits": "0168",
+      "uid": "25102818005263164760495",
+      "rrn": null,
+      "additionalData": [
+        {
+          "key": "token",
+          "value": "0000000000000000000000001082648318670168"
+        }
+      ],
+      "index": 0
+    },
+    {
+      "id": "5d198f79-bae5-4575-90a5-75029c6d2550",
+      "name": "עודף",
+      "paymentCode": null,
+      "amount": 0,
+      "paymentInfo": null,
+      "lastDigits": null,
+      "uid": null,
+      "rrn": null,
+      "additionalData": [],
+      "index": 0
+    }
+  ],
+  "moneySaved": 0,
+  "itemsCount": 8,
+  "orderID": null,
+  "suppressSMS": false,
+  "tPOS": {
+    "id": "9a57ca23-e212-4abe-b837-4174e81504ba",
+    "internalID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd.49",
+    "description": "49"
+  },
+  "tBranch": {
+    "id": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+    "internalID": "12",
+    "latitude": 31.9372787,
+    "longitude": 34.8862915,
+    "language": 2,
+    "branchName": "רמלה רמ\"א",
+    "branchAddress": "רמלה רמ\"א",
+    "branchAddressEng": "Ramla, Israel",
+    "branchPhone": null,
+    "description": null,
+    "isOnline": false,
+    "vatNumber": null
+  },
+  "tBusiness": {
+    "businessName": "יוחננוף",
+    "businessNameEnglish": "yochananof",
+    "color": "#000",
+    "phone": "053-7002121",
+    "emailAddress": "service@yochananof.co.il",
+    "address": null,
+    "logo": "048924d9-4eb1-47eb-8210-07e614beca6f.jpg",
+    "privacyLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/privacy.pdf",
+    "termsLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/terms.pdf",
+    "legalLandingPageLink": "https://wee.ai//l/ZWIV1",
+    "countryDialingCode": "+972",
+    "currencyCode": "ILS",
+    "hideOriginalTextIfItemsNull": false,
+    "webSite": null,
+    "languageCode": "he"
+  }
+}

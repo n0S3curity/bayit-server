@@ -1,0 +1,348 @@
+{
+  "userDetails": null,
+  "id": "22b117ae-d65a-4878-9abb-283c0808db33",
+  "originalText": "",
+  "total": 162.8,
+  "totalNoVat": 142.35,
+  "vatTotal": 20.45,
+  "vat": 18,
+  "currency": null,
+  "discount": null,
+  "barcode": "1311250012488855",
+  "transactionNumber": "8855",
+  "paymentType": "Unknown",
+  "receiptType": "Purchase",
+  "uploadedDate": "2025-11-13T16:10:27.8739316Z",
+  "createdDate": "2025-11-13T18:10:24",
+  "action": "Send",
+  "target": null,
+  "additionalTargets": [],
+  "posId": null,
+  "businessID": "048924d9-4eb1-47eb-8210-07e614beca6f",
+  "branchID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+  "posInternalId": null,
+  "isFavorite": false,
+  "extraDiscreteField1": null,
+  "extraDiscreteField2": null,
+  "extraTextField1": null,
+  "extraTextField2": null,
+  "loyaltyID": "1126128",
+  "loyalName": null,
+  "cashierName": "90",
+  "items": [
+    {
+      "id": "dff57f12-cd12-4542-be38-071dafc65d25",
+      "name": "גבינה חצי קשה עמק",
+      "discount": null,
+      "position": null,
+      "itemCode": "46006",
+      "price": 52.3,
+      "quantity": 0.201,
+      "discountCalc": 0,
+      "total": 10.51,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "c9b0de12-79d4-4216-8129-b6c4fa3b5614",
+      "name": "פרגיות טרי  פרימיום",
+      "discount": null,
+      "position": null,
+      "itemCode": "400693",
+      "price": 69.9,
+      "quantity": 0.946,
+      "discountCalc": 0,
+      "total": 66.13,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-1.68"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "0ce64467-2053-4b9c-b10f-d48826406148",
+      "name": "כבד עוף טרי ארוז",
+      "discount": null,
+      "position": null,
+      "itemCode": "409900",
+      "price": 24.9,
+      "quantity": 0.642,
+      "discountCalc": 0,
+      "total": 15.99,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.25"
+        },
+        {
+          "key": "כבד עוף טרי 12.90עד3ק מעל99 רשתי                                                ",
+          "value": "-7.59"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "6da7f291-9797-4920-b3ff-11081710e2f0",
+      "name": "שניצל עוף טרי פרימיו",
+      "discount": null,
+      "position": null,
+      "itemCode": "400099",
+      "price": 54.9,
+      "quantity": 0.962,
+      "discountCalc": 0,
+      "total": 52.81,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-1.98"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "25820aea-9e95-4146-8659-041b80edcafa",
+      "name": "נענע יח'",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290018024072",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "פטרוזיליה/נענע/שמיר/כוסברה 3ב10                                                 ",
+          "value": "-0.56"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "f76e28d3-cbc7-4a8b-8721-e538260f5253",
+      "name": "נענע יח'",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290018024072",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "פטרוזיליה/נענע/שמיר/כוסברה 3ב10                                                 ",
+          "value": "-0.56"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "ca23629f-1be0-4b74-b2dc-8718d38440d9",
+      "name": "נענע יח'",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290018024072",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "פטרוזיליה/נענע/שמיר/כוסברה 3ב10                                                 ",
+          "value": "-0.58"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "427a4724-06b3-413f-b75f-0b116627d482",
+      "name": "פטריות שי-מגי חומות",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290010650996",
+      "price": 9.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 9.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "5112cb4a-2b21-45cd-89b6-e1c74c313b16",
+      "name": "פומלית",
+      "discount": null,
+      "position": null,
+      "itemCode": "646",
+      "price": 5.9,
+      "quantity": 1.15,
+      "discountCalc": 0,
+      "total": 6.79,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "1b2aefc5-bf1a-45d5-b0ad-f3251107ae5d",
+      "name": "בצל יבש",
+      "discount": null,
+      "position": null,
+      "itemCode": "620",
+      "price": 3.9,
+      "quantity": 0.53,
+      "discountCalc": 0,
+      "total": 2.07,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "b5e25f02-5bf4-437a-a3a3-4c4e3d8951f5",
+      "name": "שקית גופיה יוחננוף",
+      "discount": null,
+      "position": null,
+      "itemCode": "6550",
+      "price": 0.1,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 0.1,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    }
+  ],
+  "flatItems": [],
+  "additionalData": [
+    {
+      "key": "לקוח/ה יקר/ה, בקניה זו חסכת 9.29 שח",
+      "value": ""
+    },
+    {
+      "key": "creditCardTicket",
+      "value": "יוחננוף רמלה -\nk852t\n87k7.\nמס. כספיט: 6316476\nתוכנה: CST002251T\nמספר עסק: 6783906\n18:09  13/11/25\nיורוקרד מסטרקרד\n55556199XXXX0168\nמס\" שובר: 74048064\nעסקה: חובה\n6178162 חברה\nביצוע: EMV Contactless\nאשראי: רגיל\nסכום עיסקה:\n162.80\nמטבע: ש\"ח\nUID:25111318090763164760489\nRRN:531718178162\nATC:0110,CSN:00\nTVR:0020008001\nAID:A0000000041010\nDevice By Verified\n*** עותק ללקוח ***\nתודה ולהתראות!\n\n"
+    }
+  ],
+  "payments": [
+    {
+      "id": "358b78de-776d-4b8c-99e5-532fe3a81728",
+      "name": "ישראכרט מגנטי",
+      "paymentCode": null,
+      "amount": 162.8,
+      "paymentInfo": null,
+      "lastDigits": "0168",
+      "uid": "25111318090763164760489",
+      "rrn": null,
+      "additionalData": [
+        {
+          "key": "token",
+          "value": "0000000000000000000000001082648318670168"
+        }
+      ],
+      "index": 0
+    },
+    {
+      "id": "4e79e105-2632-4616-b43a-bbf3d592cf82",
+      "name": "עודף",
+      "paymentCode": null,
+      "amount": 0,
+      "paymentInfo": null,
+      "lastDigits": null,
+      "uid": null,
+      "rrn": null,
+      "additionalData": [],
+      "index": 0
+    }
+  ],
+  "moneySaved": 0,
+  "itemsCount": 11,
+  "orderID": null,
+  "suppressSMS": false,
+  "tPOS": {
+    "id": "fcbf90e1-7f05-45e1-97e4-e2551ab30d7e",
+    "internalID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd.48",
+    "description": "48"
+  },
+  "tBranch": {
+    "id": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+    "internalID": "12",
+    "latitude": 31.9372787,
+    "longitude": 34.8862915,
+    "language": 2,
+    "branchName": "רמלה רמ\"א",
+    "branchAddress": "רמלה רמ\"א",
+    "branchAddressEng": "Ramla, Israel",
+    "branchPhone": null,
+    "description": null,
+    "isOnline": false,
+    "vatNumber": null
+  },
+  "tBusiness": {
+    "businessName": "יוחננוף",
+    "businessNameEnglish": "yochananof",
+    "color": "#000",
+    "phone": "053-7002121",
+    "emailAddress": "service@yochananof.co.il",
+    "address": null,
+    "logo": "048924d9-4eb1-47eb-8210-07e614beca6f.jpg",
+    "privacyLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/privacy.pdf",
+    "termsLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/terms.pdf",
+    "legalLandingPageLink": "https://wee.ai//l/ZWIV1",
+    "countryDialingCode": "+972",
+    "currencyCode": "ILS",
+    "hideOriginalTextIfItemsNull": false,
+    "webSite": null,
+    "languageCode": "he"
+  }
+}
