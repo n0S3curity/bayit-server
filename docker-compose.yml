@@ -20,5 +20,5 @@ services:
       - bayit-network
 
 networks:
-  zenlist-network:
+  bayit-network:
     external: true  # זה אומר ל-Compose: הרשת כבר קיימת, אל תיצור חדשה
