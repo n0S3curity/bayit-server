@@ -17,7 +17,7 @@ services:
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
     # הפקודה המאוחדת: עדכון ואז הרצה
     command: >
-      sh -c "git pull && python app.py"
+      sh -c "git config --global --add safe.directory /app && git pull && python app.py"
     restart: always
     networks:
       - bayit-network
