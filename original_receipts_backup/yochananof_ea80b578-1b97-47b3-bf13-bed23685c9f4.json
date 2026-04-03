@@ -1,0 +1,669 @@
+{
+  "userDetails": null,
+  "id": "ea80b578-1b97-47b3-bf13-bed23685c9f4",
+  "originalText": "",
+  "total": 283.46,
+  "totalNoVat": 243.17,
+  "vatTotal": 40.29,
+  "vat": 18,
+  "currency": null,
+  "discount": null,
+  "barcode": "2001260012462455",
+  "transactionNumber": "2455",
+  "paymentType": "Unknown",
+  "receiptType": "Purchase",
+  "uploadedDate": "2026-01-20T16:21:49.2614035Z",
+  "createdDate": "2026-01-20T18:21:47",
+  "action": "Send",
+  "target": null,
+  "additionalTargets": [],
+  "posId": null,
+  "businessID": "048924d9-4eb1-47eb-8210-07e614beca6f",
+  "branchID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+  "posInternalId": null,
+  "isFavorite": false,
+  "extraDiscreteField1": null,
+  "extraDiscreteField2": null,
+  "extraTextField1": null,
+  "extraTextField2": null,
+  "loyaltyID": "1126128",
+  "loyalName": null,
+  "cashierName": "90",
+  "items": [
+    {
+      "id": "d1d1aa98-9498-44e2-90cc-ed6d49fa4d89",
+      "name": "כרעיים טרי מקוצב",
+      "discount": null,
+      "position": null,
+      "itemCode": "401317",
+      "price": 34.9,
+      "quantity": 1.016,
+      "discountCalc": 0,
+      "total": 35.46,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.42"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "44695df7-f340-41b7-ab39-e01ba229abe8",
+      "name": "שוקיים עוף טרי  פרימ",
+      "discount": null,
+      "position": null,
+      "itemCode": "400044",
+      "price": 39.9,
+      "quantity": 1.09,
+      "discountCalc": 0,
+      "total": 43.49,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.96"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "14df7e98-24af-4507-8b20-a87747491207",
+      "name": "שניצל עוף טרי פרימיו",
+      "discount": null,
+      "position": null,
+      "itemCode": "400099",
+      "price": 54.9,
+      "quantity": 1.106,
+      "discountCalc": 0,
+      "total": 60.72,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-1.98"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "b9e751b7-3ae3-4968-90fb-c652247f151c",
+      "name": "שוקית כנף עוף טרי",
+      "discount": null,
+      "position": null,
+      "itemCode": "407524",
+      "price": 19.9,
+      "quantity": 1.092,
+      "discountCalc": 0,
+      "total": 21.73,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "הנחת זיכוי אריזה",
+          "value": "-0.2"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "1667cb64-2023-499d-90fc-bef2ed4e2c50",
+      "name": "גבינה לבנה 9% 500 גר",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290004127817",
+      "price": 11.7,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 11.7,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "a34e65d1-b702-4b7b-8b69-dbca6e7afe9f",
+      "name": "קוטג תנובה 12% 250 ג",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290116931241",
+      "price": 6.7,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 6.7,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "c2b6d303-0e22-4bf0-abda-81feade368f3",
+      "name": "קוטג תנובה 12% 250 ג",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290116931241",
+      "price": 6.7,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 6.7,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "37fe7730-e161-496c-bbb6-bb4069c2af24",
+      "name": "דובונים 40 גרם",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000066264",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.80"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "e8f6e8b0-bbd9-4c1d-83b6-0459ef37515c",
+      "name": "במבה במילוי קרם חלבה",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000072067",
+      "price": 4.5,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 4.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.93"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "1581edd7-aa69-41c1-8b40-4a0aa199a563",
+      "name": "אפרופו טיובס טבעות ב",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290118423669",
+      "price": 4.5,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 4.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.93"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "92538be5-705b-48a0-819f-138a11c48cff",
+      "name": "אפרופו טיובס טבעות ב",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290118423669",
+      "price": 4.5,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 4.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.93"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "0cda7e60-ce4e-4b3c-badc-9b6442184b4a",
+      "name": "דובונים 40 גרם",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000066264",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.80"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "b1ed1bf3-2784-4604-94c3-a3cd5f1f621b",
+      "name": "דובונים 40 גרם",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000066264",
+      "price": 3.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 3.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "חטיפי אסם                                                                       ",
+          "value": "-0.81"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "e32e1148-6787-4607-a689-76de9a36ec4b",
+      "name": "פסטה קרניים בינוניות",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000060828",
+      "price": 5.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 5.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "795079d6-d3ea-422e-b2f2-dada525957fd",
+      "name": "ספגטי אסם 500 גרם",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000060880",
+      "price": 5.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 5.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "19295c86-328f-475b-ac37-e98b4f7578c0",
+      "name": "החלב החדש מושלם לקפה",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290019635741",
+      "price": 12.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 12.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "רימילק החלב החדש גד                                                             ",
+          "value": "-3.00"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "277f5f44-df1d-4d65-800d-76dcb12f5e6e",
+      "name": "אבוקדו בשל ארוז  יחי",
+      "discount": null,
+      "position": null,
+      "itemCode": "611745285685",
+      "price": 9.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 9.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "אבוקדו בשל 2ב12 שלישי שוק                                                       ",
+          "value": "-3.90"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "8d19ac4c-f5bc-4350-a6a7-ac9723e50308",
+      "name": "אבוקדו בשל ארוז  יחי",
+      "discount": null,
+      "position": null,
+      "itemCode": "611745285685",
+      "price": 9.9,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 9.9,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "אבוקדו בשל 2ב12 שלישי שוק                                                       ",
+          "value": "-3.90"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "6729b5ea-22f0-4dfc-be64-62b53c42c1fe",
+      "name": "באגט רוסטיק קמח מלא",
+      "discount": null,
+      "position": null,
+      "itemCode": "1461457",
+      "price": 9.5,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 9.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "באגט רוסטיק                                                                     ",
+          "value": "-2.00"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "5eca98f1-0137-4cd2-8d28-1402518ac3c7",
+      "name": "באגט רוסטיק קמח מלא",
+      "discount": null,
+      "position": null,
+      "itemCode": "1461457",
+      "price": 9.5,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 9.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "באגט רוסטיק                                                                     ",
+          "value": "-2.00"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "0e51e8ba-df2d-4008-ba92-5d6161dc1b07",
+      "name": "מלפפון",
+      "discount": null,
+      "position": null,
+      "itemCode": "695",
+      "price": 5.9,
+      "quantity": 1.24,
+      "discountCalc": 0,
+      "total": 7.32,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "57770543-ff55-4e09-a9d4-4086fdc53f6f",
+      "name": "בירה נשר מאלט 1.5 לי",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000136646",
+      "price": 8.6,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 8.6,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "נשר מאלט 1.5 ליטר                                                               ",
+          "value": "-1.10"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "2ef67be0-e5f4-42d8-882b-2615e7975b6f",
+      "name": "בירה נשר מאלט 1.5 לי",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290000136646",
+      "price": 8.6,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 8.6,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [
+        {
+          "key": "נשר מאלט 1.5 ליטר                                                               ",
+          "value": "-1.10"
+        }
+      ],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "6957c32f-35c1-435b-845e-661d53d1ea11",
+      "name": "קריסטל תפוזים 2 ליטר",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290019056744",
+      "price": 4.6,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 4.6,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "2cf527d8-5741-4114-b504-cc987691987c",
+      "name": "קריסטל תפוזים 2 ליטר",
+      "discount": null,
+      "position": null,
+      "itemCode": "7290019056744",
+      "price": 4.6,
+      "quantity": 1,
+      "discountCalc": 0,
+      "total": 4.6,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    },
+    {
+      "id": "d675de8a-460d-49b5-b0c2-d403b0dbe41b",
+      "name": "שקית גופיה יוחננוף",
+      "discount": null,
+      "position": null,
+      "itemCode": "34560",
+      "price": 0.1,
+      "quantity": 3,
+      "discountCalc": 0,
+      "total": 0.3,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    }
+  ],
+  "flatItems": [],
+  "additionalData": [
+    {
+      "key": "לקוח/ה יקר/ה, בקניה זו חסכת 22.20 שח",
+      "value": ""
+    },
+    {
+      "key": "creditCardTicket",
+      "value": "יוחננוף רמלה -\nמס. כספיט: 6316476\nתוכנה: CST002251T\nמספר עסק: 6783906\n18:20  20/01/26\nיורוקרד מסטרקרד\n55556199XXXX0168\nמס\" שובר: 34046054\nעסקה: חובה\n3577139 חברה\nביצוע: EMV Contactless\nאשראי: רגיל\nסכום עיסקה:\n283.46\nמטבע: ש\"ח\nUID:26012018205263164760462\nRRN:602018577139\nATC:014C,CSN:00\nTVR:0020008001\nAID:A0000000041010\nDevice By Verified\n*** עותק ללקוח ***\nתודה ולהתראות!\n\n"
+    }
+  ],
+  "payments": [
+    {
+      "id": "9544828a-eed0-4fb7-8eb3-0433bf07e0bc",
+      "name": "ישראכרט מגנטי",
+      "paymentCode": null,
+      "amount": 283.46,
+      "paymentInfo": null,
+      "lastDigits": "0168",
+      "uid": "26012018205263164760462",
+      "rrn": null,
+      "additionalData": [
+        {
+          "key": "token",
+          "value": "0000000000000000000000001082648318670168"
+        }
+      ],
+      "index": 0
+    },
+    {
+      "id": "aafdf93e-5d78-44bc-9be0-2e06806f4731",
+      "name": "עודף",
+      "paymentCode": null,
+      "amount": 0,
+      "paymentInfo": null,
+      "lastDigits": null,
+      "uid": null,
+      "rrn": null,
+      "additionalData": [],
+      "index": 0
+    }
+  ],
+  "moneySaved": 0,
+  "itemsCount": 28,
+  "orderID": null,
+  "suppressSMS": false,
+  "tPOS": {
+    "id": "7eeb574f-9710-4eab-9ba3-cdb3f989dbe8",
+    "internalID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd.46",
+    "description": "46"
+  },
+  "tBranch": {
+    "id": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+    "internalID": "12",
+    "latitude": 31.9372787,
+    "longitude": 34.8862915,
+    "language": 2,
+    "branchName": "רמלה רמ\"א",
+    "branchAddress": "רמלה רמ\"א",
+    "branchAddressEng": "Ramla, Israel",
+    "branchPhone": null,
+    "description": null,
+    "isOnline": false,
+    "vatNumber": null
+  },
+  "tBusiness": {
+    "businessName": "יוחננוף",
+    "businessNameEnglish": "yochananof",
+    "color": "#000",
+    "phone": "053-7002121",
+    "emailAddress": "service@yochananof.co.il",
+    "address": null,
+    "logo": "048924d9-4eb1-47eb-8210-07e614beca6f.jpg",
+    "privacyLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/privacy.pdf",
+    "termsLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/terms.pdf",
+    "legalLandingPageLink": "https://wee.ai//l/ZWIV1",
+    "countryDialingCode": "+972",
+    "currencyCode": "ILS",
+    "hideOriginalTextIfItemsNull": false,
+    "webSite": null,
+    "languageCode": "he"
+  }
+}

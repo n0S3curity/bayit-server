@@ -48,6 +48,7 @@ from models.receipts_mongo import (
     link_exists as receipt_link_exists,
     get_receipts_for_list,
     save_receipt,
+    receipt_belongs_to_list,
 )
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -290,7 +291,10 @@ def get_receipts_list():
 
 @api_bp.route('/receipts/<receipt_number>/download', methods=['GET'])
 @require_auth
+@require_list
 def download_receipt(receipt_number):
+    if not receipt_belongs_to_list(g.list_id, receipt_number):
+        return jsonify({"error": "Receipt not found."}), 404
     base_path = '../original_receipts_backup'
     try:
         filename = receipt_number + '.pdf'
@@ -305,7 +309,10 @@ def download_receipt(receipt_number):
 
 @api_bp.route('/receipts/<receipt_number>/show', methods=['GET'])
 @require_auth
+@require_list
 def show_receipt(receipt_number):
+    if not receipt_belongs_to_list(g.list_id, receipt_number):
+        return jsonify({"error": "Receipt not found."}), 404
     base_path = '../original_receipts_backup'
     try:
         filename = receipt_number + '.pdf'
@@ -419,7 +426,7 @@ def fetch_receipt():
             created_date  = created_date,
         )
 
-        process_receipt_mongo(list_id, receipt_json, original_link=raw_url)
+        process_receipt_mongo(list_id, receipt_json, original_link=raw_url, company=company_name)
 
         return jsonify({
             "message":       "Receipt fetched and processed successfully.",
@@ -431,6 +438,28 @@ def fetch_receipt():
         return jsonify({"error": f"Network error during receipt fetch: {str(e)}"}), 500
     except Exception as e:
         return jsonify({"error": f"Error processing receipt: {str(e)}", "stacktrace": traceback.format_exc()}), 500
+
+
+@api_bp.route('/receipts/check-links', methods=['POST'])
+@limiter.limit("20 per minute")
+@require_auth
+@require_list
+def check_receipt_links():
+    """
+    Batch duplicate check before SMS sync.
+    Body:    { "urls": ["url1", "url2", ...] }
+    Returns: { "existing": [...], "new": [...] }
+    """
+    data = request.get_json()
+    urls = data.get('urls', [])
+    if not isinstance(urls, list):
+        return jsonify({"error": "urls must be a list."}), 400
+
+    list_id  = g.list_id
+    existing = [u for u in urls if receipt_link_exists(list_id, u)]
+    new_urls = [u for u in urls if not receipt_link_exists(list_id, u)]
+
+    return jsonify({"existing": existing, "new": new_urls}), 200
 
 
 @api_bp.route('/receipts/sync', methods=['POST'])
@@ -587,6 +616,9 @@ def sync_receipt():
             total        = receipt_json.get('total', 0.0)
 
         # ── Common: persist ───────────────────────────────────────────────────
+        # process first — if it fails the receipt is NOT marked as seen so the
+        # client can retry the same URL on the next sync.
+        process_receipt_mongo(list_id, receipt_json, original_link=raw_url, company=company_name)
         save_receipt(
             list_id       = list_id,
             original_link = raw_url,
@@ -596,7 +628,6 @@ def sync_receipt():
             total         = total,
             created_date  = created_date,
         )
-        process_receipt_mongo(list_id, receipt_json, original_link=raw_url)
 
         return jsonify({"status": "processed", "saved_filename": filename_value}), 200
 

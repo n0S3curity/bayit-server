@@ -36,6 +36,14 @@ def link_exists(list_id, original_link: str) -> bool:
     ) is not None
 
 
+def receipt_belongs_to_list(list_id, receipt_id: str) -> bool:
+    """Return True if receipt_id was scanned by this list."""
+    return _col().find_one(
+        {'listId': list_id, 'receiptId': receipt_id},
+        {'_id': 1}
+    ) is not None
+
+
 def get_receipts_for_list(list_id) -> list[dict]:
     """Return all receipt metadata docs for a list (without Mongo internals)."""
     return list(_col().find(

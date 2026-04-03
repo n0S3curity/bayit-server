@@ -891,7 +891,8 @@ def process_receipt_file(file_path):
             product_data['history'] = history
 
             # calculate the average price
-            product_data['average_price'] = product_data['total_price'] / product_data['total_quantity']
+            tq = product_data['total_quantity']
+            product_data['average_price'] = product_data['total_price'] / tq if tq > 0 else 0.0
 
 
         else:
@@ -978,7 +979,7 @@ def calculate_total_items():
 # MongoDB version — same analysis logic, different I/O layer
 # ---------------------------------------------------------------------------
 
-def process_receipt_mongo(list_id, receipt_content: dict, original_link: str | None = None):
+def process_receipt_mongo(list_id, receipt_content: dict, original_link: str | None = None, company: str = ''):
     """
     Process a receipt and persist the results to MongoDB.
 
@@ -1063,10 +1064,14 @@ def process_receipt_mongo(list_id, receipt_content: dict, original_link: str | N
             product_data['highest_price']  = max(highest_price, current_price)
 
             history = product_data.get('history', [])
-            history.append({"date": date_and_time, "quantity": quantity, "price": price})
+            entry = {"date": date_and_time, "quantity": quantity, "price": price}
+            if company:
+                entry["store"] = company
+            history.append(entry)
             product_data['history'] = history
 
-            product_data['average_price'] = product_data['total_price'] / product_data['total_quantity']
+            tq = product_data['total_quantity']
+            product_data['average_price'] = product_data['total_price'] / tq if tq > 0 else 0.0
 
         else:
             products[barcode] = {
@@ -1076,7 +1081,7 @@ def process_receipt_mongo(list_id, receipt_content: dict, original_link: str | N
                 "total_quantity": quantity,
                 "total_price":    total,
                 "favorite":       False,
-                "history":        [{"date": date_and_time, "quantity": quantity, "price": price}],
+                "history":        [{k: v for k, v in {"date": date_and_time, "quantity": quantity, "price": price, "store": company if company else None}.items() if v is not None}],
                 "cheapest_price": price,
                 "highest_price":  price,
                 "price_increase": 0.0,

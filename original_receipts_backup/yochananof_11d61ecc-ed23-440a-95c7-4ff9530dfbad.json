@@ -1,0 +1,130 @@
+{
+  "userDetails": null,
+  "id": "11d61ecc-ed23-440a-95c7-4ff9530dfbad",
+  "originalText": "",
+  "total": 15.5,
+  "totalNoVat": 13.14,
+  "vatTotal": 2.36,
+  "vat": 18,
+  "currency": null,
+  "discount": null,
+  "barcode": "2212250012361821",
+  "transactionNumber": "1821",
+  "paymentType": "Unknown",
+  "receiptType": "Purchase",
+  "uploadedDate": "2025-12-22T16:23:25.6077259Z",
+  "createdDate": "2025-12-22T18:23:24",
+  "action": "Send",
+  "target": null,
+  "additionalTargets": [],
+  "posId": null,
+  "businessID": "048924d9-4eb1-47eb-8210-07e614beca6f",
+  "branchID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+  "posInternalId": null,
+  "isFavorite": false,
+  "extraDiscreteField1": null,
+  "extraDiscreteField2": null,
+  "extraTextField1": null,
+  "extraTextField2": null,
+  "loyaltyID": "1126128",
+  "loyalName": null,
+  "cashierName": "90",
+  "items": [
+    {
+      "id": "26ccf9ec-3fd8-415c-85c0-360bcd98094d",
+      "name": "בולגרית  בכר 5%",
+      "discount": null,
+      "position": null,
+      "itemCode": "2507383",
+      "price": 76,
+      "quantity": 0.204,
+      "discountCalc": 0,
+      "total": 15.5,
+      "subItems": [],
+      "parentId": null,
+      "additionalData": [],
+      "receiptId": null,
+      "itemInfo": null,
+      "index": 0,
+      "categories": []
+    }
+  ],
+  "flatItems": [],
+  "additionalData": [
+    {
+      "key": "creditCardTicket",
+      "value": "יוחננוף רמלה -\nמס. כספיט: 6316476\nתוכנה: CST002251T\nמספר עסק: 6783906\n18:22  22/12/25\nיורוקרד מסטרקרד\n55556199XXXX0168\nמס\" שובר: 09036040\nעסקה: חובה\n0539680 חברה\nביצוע: EMV Contactless\nאשראי: רגיל\nסכום עיסקה:\n15.50\nמטבע: ש\"ח\nUID:25122218223063164760365\nRRN:535618539680\nATC:0130,CSN:00\nTVR:0020008001\nAID:A0000000041010\nDevice By Verified\n*** עותק ללקוח ***\nתודה ולהתראות!\n\n"
+    }
+  ],
+  "payments": [
+    {
+      "id": "d889a3da-4562-46c7-bae7-8c92d2f6d77a",
+      "name": "ישראכרט מגנטי",
+      "paymentCode": null,
+      "amount": 15.5,
+      "paymentInfo": null,
+      "lastDigits": "0168",
+      "uid": "25122218223063164760365",
+      "rrn": null,
+      "additionalData": [
+        {
+          "key": "token",
+          "value": "0000000000000000000000001082648318670168"
+        }
+      ],
+      "index": 0
+    },
+    {
+      "id": "d8d644bf-1def-4cf2-b7b3-a8d6dc11a40b",
+      "name": "עודף",
+      "paymentCode": null,
+      "amount": 0,
+      "paymentInfo": null,
+      "lastDigits": null,
+      "uid": null,
+      "rrn": null,
+      "additionalData": [],
+      "index": 0
+    }
+  ],
+  "moneySaved": 0,
+  "itemsCount": 1,
+  "orderID": null,
+  "suppressSMS": false,
+  "tPOS": {
+    "id": "2704388f-183a-486b-8e8c-c16eab5ca349",
+    "internalID": "da4b2e45-ae16-41a3-9f6f-2b93395667dd.36",
+    "description": "36"
+  },
+  "tBranch": {
+    "id": "da4b2e45-ae16-41a3-9f6f-2b93395667dd",
+    "internalID": "12",
+    "latitude": 31.9372787,
+    "longitude": 34.8862915,
+    "language": 2,
+    "branchName": "רמלה רמ\"א",
+    "branchAddress": "רמלה רמ\"א",
+    "branchAddressEng": "Ramla, Israel",
+    "branchPhone": null,
+    "description": null,
+    "isOnline": false,
+    "vatNumber": null
+  },
+  "tBusiness": {
+    "businessName": "יוחננוף",
+    "businessNameEnglish": "yochananof",
+    "color": "#000",
+    "phone": "053-7002121",
+    "emailAddress": "service@yochananof.co.il",
+    "address": null,
+    "logo": "048924d9-4eb1-47eb-8210-07e614beca6f.jpg",
+    "privacyLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/privacy.pdf",
+    "termsLink": "/storage/customers-storage/048924d9-4eb1-47eb-8210-07e614beca6f/terms.pdf",
+    "legalLandingPageLink": "https://wee.ai//l/ZWIV1",
+    "countryDialingCode": "+972",
+    "currencyCode": "ILS",
+    "hideOriginalTextIfItemsNull": false,
+    "webSite": null,
+    "languageCode": "he"
+  }
+}
