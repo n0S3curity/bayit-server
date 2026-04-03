@@ -6,19 +6,22 @@ services:
       - "8129:5000"
     environment:
       - FIREBASE_SERVICE_ACCOUNT_PATH=/app/serviceAccountKey.json
-      # שים לב: הכתובת היא שם הקונטיינר של המונגו שהרמת (bayit-mongo)
       - MONGODB_URI=mongodb://rootn0security:rootn0securitymongodb@bayit-mongo:27017/bayit?authSource=admin
       - MONGODB_DB=bayit
     volumes:
+      # מיפוי התיקייה הנוכחית לתוך /app כדי ש-git pull ישפיע על הקבצים
+      - .:/app
       - ../zenlist_databases:/app/databases
       - ../zenlist_receipts:/app/receipts
       - ../zenlist_original_receipts_backup:/app/original_receipts_backup
       - ./serviceAccountKey.json:/app/serviceAccountKey.json:ro
-    command: python app.py
+    # הפקודה המאוחדת: עדכון ואז הרצה
+    command: >
+      sh -c "git pull && python app.py"
     restart: always
     networks:
       - bayit-network
 
 networks:
   bayit-network:
-    external: true  # זה אומר ל-Compose: הרשת כבר קיימת, אל תיצור חדשה
+    external: true

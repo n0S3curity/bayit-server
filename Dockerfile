@@ -1,26 +1,29 @@
-FROM python:3.11
+FROM python:3.11-slim
 
-# Set the working directory in the container
+# התקנת git וכלים נחוצים (שימוש ב-slim חוסך מקום ב-Raspberry Pi)
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# הגדרת תיקיית העבודה
 WORKDIR /app
 
-# Copy the requirements file
+# העתקת דרישות והתקנה לתוך ה-Virtual Env
 COPY requirements.txt ./
-
-# Create a virtual environment and install dependencies into it
 RUN python -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
+# העתקת שאר הקוד
 COPY . .
 
-# Expose port 5000
-EXPOSE 5000
-
-# Set the working directory to the 'server' folder
-WORKDIR /app/server
-
-# Set environment variables so Python uses the virtual environment
+# הגדרת משתני סביבה ל-Path של ה-Venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Run the application
+# חשיפת הפורט
+EXPOSE 5000
+
+# הגדרת תיקיית העבודה לתיקיית השרת
+WORKDIR /app/server
+
+# הרצת האפליקציה (ה-Command ב-Compose ידרוס את זה, אבל טוב שיהיה כברירת מחדל)
 CMD ["python", "app.py"]
