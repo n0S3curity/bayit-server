@@ -49,6 +49,7 @@ from models.receipts_mongo import (
     get_receipts_for_list,
     save_receipt,
     receipt_belongs_to_list,
+    get_receipt_by_id,
 )
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -280,14 +281,38 @@ def get_receipts_list():
                                else "יוחננוף" if company_name == "yohananof"
                                else "רמי לוי" if company_name == "ramilevy"
                                else company_name,
-                "city":        get_hebrew_city_name(city_english),
-                "file":        doc.get('receiptId', ''),
-                "total":       doc.get('total', 0),
-                "createdDate": doc.get('createdDate', 'Unknown'),
+                "city":         get_hebrew_city_name(city_english),
+                "id":           doc.get('receiptId', ''),
+                "file":         doc.get('receiptId', ''),
+                "originalLink": doc.get('originalLink', ''),
+                "total":        doc.get('total', 0),
+                "createdDate":  doc.get('createdDate', 'Unknown'),
             })
     except Exception as e:
         return jsonify({"error": f"Error reading receipts: {str(e)}"}), 500
     return jsonify(receipts), 200
+
+
+@api_bp.route('/receipts/<receipt_id>', methods=['GET'])
+@require_auth
+@require_list
+def get_receipt_detail(receipt_id):
+    """Return full receipt details including items for a given receiptId."""
+    doc = get_receipt_by_id(g.list_id, receipt_id)
+    if not doc:
+        return jsonify({"error": "Receipt not found."}), 404
+    company_name = doc.get('company', '')
+    return jsonify({
+        "id":           doc.get('receiptId', receipt_id),
+        "company":      "אושר עד" if company_name == "osherad"
+                        else "יוחננוף" if company_name == "yohananof"
+                        else "רמי לוי" if company_name == "ramilevy"
+                        else company_name,
+        "city":         get_hebrew_city_name(doc.get('cityEnglish', '')),
+        "total":        doc.get('total', 0),
+        "createdDate":  doc.get('createdDate', ''),
+        "items":        doc.get('items', []),
+    }), 200
 
 
 @api_bp.route('/receipts/<receipt_number>/download', methods=['GET'])
@@ -419,6 +444,19 @@ def fetch_receipt():
         created_date = receipt_json.get('createdDate', '').replace("T", " ")
         total        = receipt_json.get('total', 0.0)
 
+        raw_items = receipt_json.get('items', [])
+        normalized_items = [
+            {
+                'code':     str(it.get('code', '')),
+                'name':     it.get('name', ''),
+                'price':    float(it.get('price', 0)),
+                'quantity': int(it.get('quantity', 1)),
+                'total':    float(it.get('total', 0)),
+            }
+            for it in raw_items
+            if it.get('code') != '901046' and it.get('name') != 'מיחזור אריזה'
+        ]
+
         save_receipt(
             list_id      = list_id,
             original_link = raw_url,
@@ -427,6 +465,7 @@ def fetch_receipt():
             receipt_id    = filename_value,
             total         = total,
             created_date  = created_date,
+            items         = normalized_items,
         )
 
         process_receipt_mongo(list_id, receipt_json, original_link=raw_url, company=company_name)
@@ -628,6 +667,19 @@ def sync_receipt():
         # ── Common: persist ───────────────────────────────────────────────────
         # process first — if it fails the receipt is NOT marked as seen so the
         # client can retry the same URL on the next sync.
+        raw_items = receipt_json.get('items', [])
+        normalized_items = [
+            {
+                'code':     str(it.get('code', '')),
+                'name':     it.get('name', ''),
+                'price':    float(it.get('price', 0)),
+                'quantity': int(it.get('quantity', 1)),
+                'total':    float(it.get('total', 0)),
+            }
+            for it in raw_items
+            if it.get('code') != '901046' and it.get('name') != 'מיחזור אריזה'
+        ]
+
         process_receipt_mongo(list_id, receipt_json, original_link=raw_url, company=company_name)
         save_receipt(
             list_id       = list_id,
@@ -637,6 +689,7 @@ def sync_receipt():
             receipt_id    = filename_value,
             total         = total,
             created_date  = created_date,
+            items         = normalized_items,
         )
 
         return jsonify({"status": "processed", "saved_filename": filename_value}), 200

@@ -62,6 +62,7 @@ def save_receipt(
     receipt_id: str,
     total: float,
     created_date: str,
+    items: list | None = None,
 ) -> None:
     """Insert a new receipt metadata document."""
     _col().insert_one({
@@ -73,4 +74,13 @@ def save_receipt(
         'receiptId':    receipt_id,
         'total':        total,
         'createdDate':  created_date,
+        'items':        items or [],
     })
+
+
+def get_receipt_by_id(list_id, receipt_id: str) -> dict | None:
+    """Return a single receipt document (without Mongo internals)."""
+    return _col().find_one(
+        {'listId': list_id, 'receiptId': receipt_id},
+        {'_id': 0, 'listId': 0}
+    )
