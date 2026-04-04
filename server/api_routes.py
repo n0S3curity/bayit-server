@@ -278,6 +278,7 @@ def get_receipts_list():
             receipts.append({
                 "company":     "אושר עד" if company_name == "osherad"
                                else "יוחננוף" if company_name == "yohananof"
+                               else "רמי לוי" if company_name == "ramilevy"
                                else company_name,
                 "city":        get_hebrew_city_name(city_english),
                 "file":        doc.get('receiptId', ''),
@@ -378,6 +379,8 @@ def fetch_receipt():
             company_name = "osherad"
         elif 'yohananof' in final_url:
             company_name = "yohananof"
+        elif 'rami-levy' in final_url:
+            company_name = "ramilevy"
 
         try:
             filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
@@ -584,7 +587,14 @@ def sync_receipt():
 
             receipt_json = response.json()
 
-            company_name = "osherad" if 'osher' in final_url else ("yohananof" if 'yohananof' in final_url else "")
+            if 'osher' in final_url:
+                company_name = "osherad"
+            elif 'rami-levy' in final_url:
+                company_name = "ramilevy"
+            elif 'yohananof' in final_url:
+                company_name = "yohananof"
+            else:
+                company_name = ""
 
             try:
                 filename_value = receipt_json['additionalInfo'][0]['value'].replace("@", "")
