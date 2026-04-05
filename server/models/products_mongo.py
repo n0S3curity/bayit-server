@@ -87,6 +87,57 @@ def set_favorite(list_id, barcode: str, value: bool) -> bool:
     return result.matched_count > 0
 
 
+def get_regular_basket(list_id) -> dict:
+    """
+    Return the top 30% of products ranked by purchase frequency:
+    how many distinct receipt visits contained this product (len(history)).
+
+    A product bought in every trip scores 100%; one bought once scores low.
+    TOP 30% of distinct products by visit_count are the "regular basket".
+
+    Returns:
+        {
+            items: [{ ...product, visit_count, visit_pct }, ...],
+            total_products: int,
+            basket_size: int,
+            total_receipts: int,
+        }
+    """
+    import math
+    from db import get_collection
+
+    # Total distinct receipts for this list
+    receipts_col = get_collection('receipts')
+    total_receipts = receipts_col.count_documents({'listId': list_id})
+
+    col = _col()
+    docs = list(col.find({'listId': list_id}, {'_id': 0, 'listId': 0}))
+
+    # Annotate each product with visit_count = number of history entries
+    # (each entry represents one receipt/visit)
+    for doc in docs:
+        history = doc.get('history') or []
+        visit_count = len(history)
+        doc['visit_count'] = visit_count
+        doc['visit_pct'] = round(
+            (visit_count / total_receipts * 100) if total_receipts > 0 else 0,
+            1
+        )
+
+    # Sort by visit frequency descending, then by total_quantity as tiebreaker
+    docs.sort(key=lambda d: (d['visit_count'], d.get('total_quantity', 0)), reverse=True)
+
+    total_products = len(docs)
+    basket_size = math.ceil(total_products * 0.20) if total_products > 0 else 0
+
+    return {
+        'items': docs[:basket_size],
+        'total_products': total_products,
+        'basket_size': basket_size,
+        'total_receipts': total_receipts,
+    }
+
+
 def bulk_upsert(list_id, products: dict) -> None:
     """
     Upsert all products from a barcode→data dict.

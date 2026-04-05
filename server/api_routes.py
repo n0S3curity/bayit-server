@@ -35,6 +35,7 @@ from models.products_mongo import (
     get_products_dict,
     get_products_paged,
     get_product,
+    get_regular_basket,
     set_favorite,
 )
 from models.settings_mongo import (
@@ -54,6 +55,25 @@ from models.receipts_mongo import (
 )
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+
+_KEYWORDS_PATH = os.path.join(os.path.dirname(__file__), 'insight_keywords.json')
+
+
+# ── Insight keywords ──────────────────────────────────────────────────────────
+
+@api_bp.route('/insight-keywords', methods=['GET'])
+@require_auth
+def get_insight_keywords():
+    """Return the keyword lists used by the client-side insights engine."""
+    import json
+    try:
+        with open(_KEYWORDS_PATH, encoding='utf-8') as f:
+            data = json.load(f)
+        # Strip internal comment key before sending
+        data.pop('_comment', None)
+        return jsonify(data)
+    except FileNotFoundError:
+        return jsonify({}), 200
 
 
 # ── Shopping list ─────────────────────────────────────────────────────────────
@@ -819,6 +839,14 @@ def get_products():
 @require_list
 def get_productsBrowser():
     return jsonify(get_products_dict(g.list_id))
+
+
+@api_bp.route('/regular-basket', methods=['GET'])
+@require_auth
+@require_list
+def get_regular_basket_route():
+    """Return the user's regular basket — top 30% of products by total quantity purchased."""
+    return jsonify(get_regular_basket(g.list_id))
 
 
 @api_bp.route('/product/<barcode>/settings', methods=['GET'])
