@@ -46,6 +46,7 @@ from models.settings_mongo import (
 )
 from models.receipts_mongo import (
     link_exists as receipt_link_exists,
+    manual_receipt_number_exists,
     get_receipts_for_list,
     save_receipt,
     receipt_belongs_to_list,
@@ -704,6 +705,101 @@ def sync_receipt():
         tb = traceback.format_exc()
         print(f"[sync_receipt] Unexpected error for URL: {raw_url}\n{tb}")
         return jsonify({"error": f"Unexpected error: {str(e)}", "stacktrace": tb}), 500
+
+
+@api_bp.route('/receipts/scan-manual', methods=['POST'])
+@limiter.limit("20 per minute")
+@require_auth
+@require_list
+def scan_manual_receipt():
+    """
+    Save a manually camera-scanned receipt.
+
+    Body:
+        receiptNumber  str   — receipt ID printed on the physical receipt (required)
+        receiptType    str   — "חשבונית מס/קבלה" | "חשבונית קבלה"
+        items          list  — [{ barcode, name, quantity }]
+        date           str   — "DD/MM/YYYY"
+        time           str   — "HH:MM"
+        total          float — final total
+        company        str   — "osherad" | "yohananof" | "ramilevy" | "shufersal" | ...
+        city           str   — optional city name
+
+    Returns 409 {"status": "duplicate"} if this receiptNumber was already manually scanned.
+    """
+    from datetime import datetime as _dt
+
+    list_id = g.list_id
+    data    = request.get_json()
+
+    receipt_number = safe_str(data.get('receiptNumber', ''))
+    receipt_type   = safe_str(data.get('receiptType', 'חשבונית מס/קבלה'))
+    items_raw      = data.get('items') or []
+    date_str       = safe_str(data.get('date', ''))
+    time_str       = safe_str(data.get('time', ''))
+    total          = float(data.get('total') or 0.0)
+    company        = safe_str(data.get('company', ''))
+    city           = safe_str(data.get('city', ''))
+
+    if not receipt_number:
+        return jsonify({'error': 'receiptNumber is required.'}), 400
+
+    # Duplicate prevention — only among manually scanned receipts
+    if manual_receipt_number_exists(list_id, receipt_number):
+        return jsonify({'status': 'duplicate'}), 409
+
+    # Parse date DD/MM/YYYY → YYYY-MM-DD HH:MM:00
+    created_date = date_str
+    try:
+        parsed = _dt.strptime(date_str, '%d/%m/%Y')
+        created_date = f"{parsed.strftime('%Y-%m-%d')} {time_str}:00" if time_str else parsed.strftime('%Y-%m-%d')
+    except (ValueError, AttributeError):
+        if time_str:
+            created_date = f"{date_str} {time_str}:00"
+
+    normalized_items = [
+        {
+            'code':     safe_str(it.get('barcode', '')),
+            'name':     safe_str(it.get('name', '')),
+            'price':    0.0,
+            'quantity': int(it.get('quantity') or 1),
+            'total':    0.0,
+        }
+        for it in items_raw
+        if it.get('barcode')
+    ]
+
+    pseudo_link = f"manual://{receipt_number}"
+
+    save_receipt(
+        list_id          = list_id,
+        original_link    = pseudo_link,
+        company          = company,
+        city_english     = city,
+        receipt_id       = receipt_number,
+        total            = total,
+        created_date     = created_date,
+        items            = normalized_items,
+        scanned_manually = True,
+        receipt_type     = receipt_type,
+    )
+
+    # Update global stats (total_receipts, total_spent) — pass empty items
+    # to avoid corrupting product price stats where we have no price data.
+    process_receipt_mongo(
+        list_id,
+        {
+            'createdDate':   created_date,
+            'total':         total,
+            'barcode':       receipt_number,
+            'numberOfItems': len(normalized_items),
+            'items':         [],
+        },
+        original_link=pseudo_link,
+        company=company,
+    )
+
+    return jsonify({'status': 'ok', 'receiptId': receipt_number}), 200
 
 
 # ── Products ──────────────────────────────────────────────────────────────────

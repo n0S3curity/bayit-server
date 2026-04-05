@@ -36,6 +36,14 @@ def link_exists(list_id, original_link: str) -> bool:
     ) is not None
 
 
+def manual_receipt_number_exists(list_id, receipt_id: str) -> bool:
+    """Return True if a manually-scanned receipt with this receiptId already exists."""
+    return _col().find_one(
+        {'listId': list_id, 'receiptId': receipt_id, 'scannedManually': True},
+        {'_id': 1}
+    ) is not None
+
+
 def receipt_belongs_to_list(list_id, receipt_id: str) -> bool:
     """Return True if receipt_id was scanned by this list."""
     return _col().find_one(
@@ -63,9 +71,11 @@ def save_receipt(
     total: float,
     created_date: str,
     items: list | None = None,
+    scanned_manually: bool = False,
+    receipt_type: str = '',
 ) -> None:
     """Insert a new receipt metadata document."""
-    _col().insert_one({
+    doc = {
         'listId':       list_id,
         'originalLink': original_link,
         'scannedAt':    datetime.now(timezone.utc),
@@ -75,7 +85,12 @@ def save_receipt(
         'total':        total,
         'createdDate':  created_date,
         'items':        items or [],
-    })
+    }
+    if scanned_manually:
+        doc['scannedManually'] = True
+    if receipt_type:
+        doc['receiptType'] = receipt_type
+    _col().insert_one(doc)
 
 
 def get_receipt_by_id(list_id, receipt_id: str) -> dict | None:
