@@ -845,7 +845,7 @@ def get_productsBrowser():
 @require_auth
 @require_list
 def get_regular_basket_route():
-    """Return the user's regular basket — top 30% of products by total quantity purchased."""
+    """Return the user's regular basket — top 20% of products by total quantity purchased."""
     return jsonify(get_regular_basket(g.list_id))
 
 
