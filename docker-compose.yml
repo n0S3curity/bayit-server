@@ -22,6 +22,7 @@ services:
     networks:
       - bayit-network
 
+
 networks:
   bayit-network:
     external: true
